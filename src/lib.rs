@@ -8,7 +8,7 @@ extern crate hyper;
 mod datapoints;
 
 #[cfg(feature = "serde_macros")]
-include!("lib.rs.in");
+include!("lib.in.rs");
 
 #[cfg(not(feature = "serde_macros"))]
 include!(concat!(env!("OUT_DIR"), "/lib.rs"));

@@ -12,7 +12,7 @@ unstable = ["serde_derive"]
 serde_codegen = { version = "0.8", optional = true }
 
 [dependencies]
-hyper = {version = "^0.9", default-features = false}
+hyper="^0.9"
 log = "^0.3"
 serde = "0.8"
 serde_derive = { version = "0.8", optional = true }

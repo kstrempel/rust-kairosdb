@@ -7,6 +7,11 @@ fn main() {
 
     let out_dir = env::var_os("OUT_DIR").unwrap();
 
+    let src = Path::new("src/datapoints.in.rs");
+    let dst = Path::new(&out_dir).join("datapoints.rs");
+
+    serde_codegen::expand(&src, &dst).unwrap();
+
     let src = Path::new("src/lib.in.rs");
     let dst = Path::new(&out_dir).join("lib.rs");
 

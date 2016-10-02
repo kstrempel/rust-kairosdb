@@ -1,5 +1,9 @@
 use std::io::Read;
+use std::time::Duration;
+use hyper::header::Connection;
+use hyper::status::StatusCode;
 use datapoints::Datapoints;
+
 
 pub struct Client {
     base_url: String,
@@ -13,28 +17,38 @@ struct Version {
 
 impl Client {
     pub fn new(host: &str, port: u32) -> Client {
-        Client {
+        let mut http_client = hyper::Client::new();
+        http_client.set_read_timeout(Some(Duration::new(5, 0)));
+        http_client.set_write_timeout(Some(Duration::new(5, 0)));
+         Client {
             base_url: format!("http://{}:{}", host, port),
-            http_client: hyper::Client::new(),
+            http_client: http_client
         }
     }
 
     pub fn version(&self) -> Result<String, hyper::Error> {
-        let mut response = try!(self.http_client
+        let mut response = self.http_client
             .get(&format!("{}/api/v1/version", self.base_url))
-            .send());
+            .header(Connection::close())
+            .send()
+            .unwrap();
         let mut body = String::new();
-        try!(response.read_to_string(&mut body));
+        response.read_to_string(&mut body);
         let version: Version = serde_json::from_str(&body).unwrap();
 
         Ok(version.version)
     }
 
     pub fn add(&self, datapoints: &Datapoints) -> Result<(), hyper::Error> {
-        let mut response = try!(self.http_client
+        let body = serde_json::to_string(datapoints).unwrap();
+        let mut response = self.http_client
             .post(&format!("{}/api/v1/datapoints", self.base_url))
-            .body(&datapoints.get_json())
-            .send());
+            .header(Connection::close())
+            .body(&body)
+            .send()
+            .unwrap();
+        let status = response.status == StatusCode::Ok;
+
         Ok(())
     }
 }
@@ -53,15 +67,19 @@ mod tests {
     }
 
     #[test]
-    fn get_version_unknown_host() {
-        let client = Client::new("unknown", 8080);
-        assert!(client.version().unwrap().starts_with("KairosDB"));
+    #[should_panic]
+    fn get_version_wrong_host() {
+        let client = Client::new("www.google.com", 80);
+        client.version();
     }
 
     #[test]
     fn add_datapoints() {
-        let client = Client::new("unknown", 8080);
+        let client = Client::new("localhost", 8080);
         let datapoints = Datapoints::new("first", 0);
-        client.add(&datapoints);
+        assert!(match client.add(&datapoints) {
+            Ok(_) => true,
+            _ => false,
+        });
     }
 }
