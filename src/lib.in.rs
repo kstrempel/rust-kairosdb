@@ -1,20 +1,21 @@
 use std::io::Read;
+use datapoints::Datapoints;
 
 pub struct Client {
-    base_url:    String,
+    base_url: String,
     http_client: hyper::Client,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Version{
-    version: String
+struct Version {
+    version: String,
 }
 
 impl Client {
     pub fn new(host: &str, port: u32) -> Client {
-        Client{
+        Client {
             base_url: format!("http://{}:{}", host, port),
-            http_client: hyper::Client::new()
+            http_client: hyper::Client::new(),
         }
     }
 
@@ -28,6 +29,14 @@ impl Client {
 
         Ok(version.version)
     }
+
+    pub fn add(&self, datapoints: &Datapoints) -> Result<(), hyper::Error> {
+        let mut response = try!(self.http_client
+            .post(&format!("{}/api/v1/datapoints", self.base_url))
+            .body(&datapoints.get_json())
+            .send());
+        Ok(())
+    }
 }
 
 
@@ -35,6 +44,7 @@ impl Client {
 mod tests {
 
     use super::Client;
+    use datapoints::Datapoints;
 
     #[test]
     fn get_version() {
@@ -48,4 +58,10 @@ mod tests {
         assert!(client.version().unwrap().starts_with("KairosDB"));
     }
 
+    #[test]
+    fn add_datapoints() {
+        let client = Client::new("unknown", 8080);
+        let datapoints = Datapoints::new("first", 0);
+        client.add(&datapoints);
+    }
 }

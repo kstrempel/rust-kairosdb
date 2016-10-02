@@ -5,6 +5,7 @@ extern crate serde_json;
 extern crate log;
 extern crate hyper;
 
+mod datapoints;
 
 #[cfg(feature = "serde_macros")]
 include!("lib.rs.in");
