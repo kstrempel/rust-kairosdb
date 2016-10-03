@@ -1,5 +1,4 @@
 use std::io::Read;
-use std::time::Duration;
 use hyper::header::Connection;
 use hyper::status::StatusCode;
 use datapoints::Datapoints;
@@ -18,12 +17,9 @@ struct Version {
 
 impl Client {
     pub fn new(host: &str, port: u32) -> Client {
-        let mut http_client = hyper::Client::new();
-        http_client.set_read_timeout(Some(Duration::new(5, 0)));
-        http_client.set_write_timeout(Some(Duration::new(5, 0)));
         Client {
             base_url: format!("http://{}:{}", host, port),
-            http_client: http_client
+            http_client: hyper::Client::new(),
         }
     }
 
@@ -34,7 +30,7 @@ impl Client {
             .send());
         let mut body = String::new();
         try!(response.read_to_string(&mut body));
-        let version: Version = serde_json::from_str(&body).unwrap();
+        let version: Version = try!(serde_json::from_str(&body));
         Ok(version.version)
     }
 
@@ -47,7 +43,7 @@ impl Client {
             .send());
         match response.status {
             StatusCode::Created => Ok(()),
-            _ => Err(KairoError::KairoError("Bad response code".to_string()))
+            _ => Err(KairoError::KairoError("Bad response code".to_string())),
         }
     }
 }
@@ -76,7 +72,7 @@ mod tests {
     fn add_datapoints() {
         let client = Client::new("localhost", 8080);
         let mut datapoints = Datapoints::new("first", 0);
-        datapoints.add( 1475513259000, 11);
+        datapoints.add(1475513259000, 11);
         datapoints.add_tag("test", "first");
         let result = client.add(&datapoints);
         assert!(result.is_err())
