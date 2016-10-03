@@ -39,8 +39,7 @@ impl Client {
     }
 
     pub fn add(&self, datapoints: &Datapoints) -> Result<(), KairoError> {
-        let body = try!(serde_json::to_string(&datapoints));
-        println!("here is the body {}", body);
+        let body = try!(serde_json::to_string(&vec![datapoints]));
         let response = try!(self.http_client
             .post(&format!("{}/api/v1/datapoints", self.base_url))
             .header(Connection::close())
@@ -76,10 +75,10 @@ mod tests {
     #[test]
     fn add_datapoints() {
         let client = Client::new("localhost", 8080);
-        let datapoints = Datapoints::new("first", 0);
-        assert!(match client.add(&datapoints) {
-            Ok(_) => true,
-            _ => false,
-        });
+        let mut datapoints = Datapoints::new("first", 0);
+        datapoints.add( 1475513259000, 11);
+        datapoints.add_tag("test", "first");
+        let result = client.add(&datapoints);
+        assert!(result.is_err())
     }
 }
