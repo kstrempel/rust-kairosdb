@@ -6,6 +6,7 @@ extern crate log;
 extern crate hyper;
 
 mod datapoints;
+mod error;
 
 #[cfg(feature = "serde_macros")]
 include!("lib.in.rs");

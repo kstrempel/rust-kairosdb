@@ -3,8 +3,9 @@ use std::time::Duration;
 use hyper::header::Connection;
 use hyper::status::StatusCode;
 use datapoints::Datapoints;
+use error::KairoError;
 
-
+#[derive(Debug)]
 pub struct Client {
     base_url: String,
     http_client: hyper::Client,
@@ -20,36 +21,35 @@ impl Client {
         let mut http_client = hyper::Client::new();
         http_client.set_read_timeout(Some(Duration::new(5, 0)));
         http_client.set_write_timeout(Some(Duration::new(5, 0)));
-         Client {
+        Client {
             base_url: format!("http://{}:{}", host, port),
             http_client: http_client
         }
     }
 
-    pub fn version(&self) -> Result<String, hyper::Error> {
-        let mut response = self.http_client
+    pub fn version(&self) -> Result<String, KairoError> {
+        let mut response = try!(self.http_client
             .get(&format!("{}/api/v1/version", self.base_url))
             .header(Connection::close())
-            .send()
-            .unwrap();
+            .send());
         let mut body = String::new();
-        response.read_to_string(&mut body);
+        try!(response.read_to_string(&mut body));
         let version: Version = serde_json::from_str(&body).unwrap();
-
         Ok(version.version)
     }
 
-    pub fn add(&self, datapoints: &Datapoints) -> Result<(), hyper::Error> {
-        let body = serde_json::to_string(datapoints).unwrap();
-        let mut response = self.http_client
+    pub fn add(&self, datapoints: &Datapoints) -> Result<(), KairoError> {
+        let body = try!(serde_json::to_string(&datapoints));
+        println!("here is the body {}", body);
+        let response = try!(self.http_client
             .post(&format!("{}/api/v1/datapoints", self.base_url))
             .header(Connection::close())
             .body(&body)
-            .send()
-            .unwrap();
-        let status = response.status == StatusCode::Ok;
-
-        Ok(())
+            .send());
+        match response.status {
+            StatusCode::Created => Ok(()),
+            _ => Err(KairoError::KairoError("Bad response code".to_string()))
+        }
     }
 }
 
@@ -70,7 +70,7 @@ mod tests {
     #[should_panic]
     fn get_version_wrong_host() {
         let client = Client::new("www.google.com", 80);
-        client.version();
+        assert!(client.version().unwrap().starts_with("KairosDB"));
     }
 
     #[test]
