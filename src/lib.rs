@@ -5,7 +5,7 @@ extern crate serde_json;
 extern crate log;
 extern crate hyper;
 
-mod datapoints;
+pub mod datapoints;
 mod error;
 
 #[cfg(feature = "serde_macros")]
