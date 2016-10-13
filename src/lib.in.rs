@@ -2,6 +2,7 @@ use std::io::Read;
 use hyper::header::Connection;
 use hyper::status::StatusCode;
 use datapoints::Datapoints;
+use query::Query;
 use error::KairoError;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -52,5 +53,9 @@ impl Client {
                 Err(KairoError::KairoError("Bad response code".to_string()))
             }
         }
+    }
+
+    pub fn query(&self, querymap: &Query) -> Result<(), KairoError> {
+        Ok(())
     }
 }
