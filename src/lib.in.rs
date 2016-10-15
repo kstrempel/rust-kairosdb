@@ -7,13 +7,13 @@ use error::KairoError;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Version {
-    version: String
+    version: String,
 }
 
 #[derive(Debug)]
 pub struct Client {
     base_url: String,
-    http_client: hyper::Client
+    http_client: hyper::Client,
 }
 
 impl Client {
@@ -47,15 +47,25 @@ impl Client {
             .body(&body)
             .send());
         match response.status {
-            StatusCode::Created => Ok(()),
+            StatusCode::NoContent=> Ok(()),
             _ => {
-                warn!("Add datapoints returns with bad response code: {:?}", response.status);
-                Err(KairoError::KairoError("Bad response code".to_string()))
+                let msg = format!("Add datapoints returns with bad response code: {:?}", response.status); 
+                Err(KairoError::KairoError(msg))
             }
         }
     }
 
-    pub fn query(&self, querymap: &Query) -> Result<(), KairoError> {
-        Ok(())
+    pub fn query(&self, query: &Query) -> Result<(), KairoError> {
+        let body = try!(serde_json::to_string(query));
+        info!("Run query {}", body);
+        let response = try!(self.http_client
+            .post(&format!("{}/api/v1/datapoints/query", self.base_url))
+            .header(Connection::close())
+            .body(&body)
+            .send());
+        match response.status {
+            StatusCode::Ok => Ok(()),
+            _ => Err(KairoError::KairoError(format!("Bad response code: {:?}", response.status)))
+        }
     }
 }

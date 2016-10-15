@@ -14,11 +14,11 @@ pub enum TimeUnit {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Query {
-    metrics: Vec<Metrics>
+    metrics: Vec<Metric>
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Metrics {
+pub struct Metric {
     tags: HashMap<String, Vec<String>>,
     name: String,
     limit: i64,
@@ -41,6 +41,23 @@ impl Query {
     pub fn new() -> Query {
         Query{
             metrics: vec![]
+        }
+    }
+
+    pub fn add(&mut self, metric: Metric) {
+        self.metrics.push(metric);
+    }
+}
+
+impl Metric {
+    pub fn new(name: &str,
+               tags: HashMap<String, Vec<String>>,
+               aggregators: Vec<Aggregator>) -> Metric {
+        Metric{
+            tags: tags,
+            name: name.to_string(),
+            limit: 10,
+            aggregators: aggregators
         }
     }
 }
