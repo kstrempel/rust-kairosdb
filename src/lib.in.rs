@@ -58,6 +58,7 @@ impl Client {
     pub fn query(&self, query: &Query) -> Result<(), KairoError> {
         let body = try!(serde_json::to_string(query));
         info!("Run query {}", body);
+        println!("Run query {}", body);
         let response = try!(self.http_client
             .post(&format!("{}/api/v1/datapoints/query", self.base_url))
             .header(Connection::close())
