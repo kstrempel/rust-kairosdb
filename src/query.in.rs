@@ -48,13 +48,13 @@ pub struct Metric {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Aggregator {
     name: String,
-    samling: Sampling
+    sampling: RelativeTime
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Sampling {
     value: i64,
-//    unit: TimeUnit
+    unit: TimeUnit
 }
 
 impl Query {

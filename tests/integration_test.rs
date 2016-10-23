@@ -45,5 +45,6 @@ fn query_empty() {
     query.add(metric);
     let result = client.query(&query);
     println!("{:?}", result);
-    assert!(result.is_ok())
+    assert!(result.is_ok());
+    assert!(result.is_err());
 }

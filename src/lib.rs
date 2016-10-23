@@ -7,6 +7,7 @@ extern crate hyper;
 
 pub mod datapoints;
 pub mod query;
+pub mod result;
 mod error;
 
 #[cfg(feature = "serde_macros")]
