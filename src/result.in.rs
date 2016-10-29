@@ -34,8 +34,8 @@ impl QueryResult {
         QueryResult{queries: vec![]}
     }
 
-    pub fn parse_result(&self, body: &String) -> Result<ResultMap,
-                                                        KairoError> {
+    pub fn parse_result(&self, body: &str) -> Result<ResultMap,
+                                                     KairoError> {
         let mut result : ResultMap = HashMap::new();
         let deserialized : QueryResult = try!(serde_json::from_str(body));
 

@@ -90,8 +90,8 @@ impl Client {
         }
     }
 
-    fn parse_query_result(&self, body: &String) -> Result<ResultMap,
-                                                          KairoError> {
+    fn parse_query_result(&self, body: &str) -> Result<ResultMap,
+                                                       KairoError> {
         println!("Result {}", body);
         let result = QueryResult::new();
         result.parse_result(body)
