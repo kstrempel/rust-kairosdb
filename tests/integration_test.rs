@@ -6,7 +6,7 @@ extern crate log;
 use std::collections::HashMap;
 use kairosdb::Client;
 use kairosdb::datapoints::Datapoints;
-use kairosdb::query::{Query, Metric, Time, TimeUnit};
+use kairosdb::query::{Query, Metric, Time};
 
 #[test]
 fn get_version() {
@@ -42,7 +42,7 @@ fn query_empty() {
     datapoints.add(1147724326040, 112);
     datapoints.add(1147724326051, 115);
     datapoints.add_tag("test", "second");
-    client.add(&datapoints);
+    let _ = client.add(&datapoints);
 
     let mut query = Query::new(
         Time::Absolute(1147724326000),
@@ -50,19 +50,19 @@ fn query_empty() {
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
-    let mut metric = Metric::new("second",tags, vec![]);
+    let metric = Metric::new("second",tags, vec![]);
     query.add(metric);
 
     let result = client.query(&query).unwrap();
     assert!(result.contains_key("second"));
-    let ref first = result["second"][0];
+    let first = &result["second"][0];
     assert_eq!(first.time, 1147724326001);
     assert_eq!(first.value, 111);
 
-    let ref second = result["second"][1];
+    let second = &result["second"][1];
     assert_eq!(second.time,1147724326040);
     assert_eq!(second.value, 112);
 
-    let ref array = result["second"];
+    let array = &result["second"];
     assert_eq!(array.len(), 2);
 }

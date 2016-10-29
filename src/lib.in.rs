@@ -54,7 +54,7 @@ impl Client {
             _ => {
                 let msg = format!("Add datapoints returns with bad response code: {:?}",
                                   response.status);
-                Err(KairoError::KairoError(msg))
+                Err(KairoError::Kairo(msg))
             }
         }
     }
@@ -84,14 +84,14 @@ impl Client {
                 Ok(result_body)
             },
             _ => {
-                Err(KairoError::KairoError(
+                Err(KairoError::Kairo(
                     format!("Bad response code: {:?}", response.status)))
             }
         }
     }
 
-    fn parse_query_result(&self, body: &String) -> Result<ResultMap,
-                                                          KairoError> {
+    fn parse_query_result(&self, body: &str) -> Result<ResultMap,
+                                                       KairoError> {
         println!("Result {}", body);
         let result = QueryResult::new();
         result.parse_result(body)
