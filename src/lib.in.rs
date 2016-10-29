@@ -54,7 +54,7 @@ impl Client {
             _ => {
                 let msg = format!("Add datapoints returns with bad response code: {:?}",
                                   response.status);
-                Err(KairoError::KairoError(msg))
+                Err(KairoError::Kairo(msg))
             }
         }
     }
@@ -84,7 +84,7 @@ impl Client {
                 Ok(result_body)
             },
             _ => {
-                Err(KairoError::KairoError(
+                Err(KairoError::Kairo(
                     format!("Bad response code: {:?}", response.status)))
             }
         }
