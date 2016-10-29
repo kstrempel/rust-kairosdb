@@ -36,15 +36,33 @@ fn add_datapoints() {
 #[test]
 fn query_empty() {
     let client = Client::new("localhost", 8080);
+
+    let mut datapoints = Datapoints::new("second", 0);
+    datapoints.add(1147724326001, 111);
+    datapoints.add(1147724326040, 112);
+    datapoints.add(1147724326051, 115);
+    datapoints.add_tag("test", "second");
+    client.add(&datapoints);
+
     let mut query = Query::new(
-        Time::Absolute(1475513259000),
-        Time::Relative{value: 5, unit: TimeUnit::DAYS});
+        Time::Absolute(1147724326000),
+        Time::Absolute(1147724326040));
+
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
-    tags.insert("test".to_string(), vec!["first".to_string()]);
-    let mut metric = Metric::new("first",tags, vec![]);
+    tags.insert("test".to_string(), vec!["second".to_string()]);
+    let mut metric = Metric::new("second",tags, vec![]);
     query.add(metric);
-    let result = client.query(&query);
-    println!("{:?}", result);
-    assert!(result.is_ok());
-    assert!(result.is_err());
+
+    let result = client.query(&query).unwrap();
+    assert!(result.contains_key("second"));
+    let ref first = result["second"][0];
+    assert_eq!(first.time, 1147724326001);
+    assert_eq!(first.value, 111);
+
+    let ref second = result["second"][1];
+    assert_eq!(second.time,1147724326040);
+    assert_eq!(second.value, 112);
+
+    let ref array = result["second"];
+    assert_eq!(array.len(), 2);
 }
