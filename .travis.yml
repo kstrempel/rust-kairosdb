@@ -1,0 +1,13 @@
+language: rust
+rust:
+  - stable
+  - beta
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
+
+install:
+  - wget -c -O /home/travis/kairosdb.deb https://github.com/kairosdb/kairosdb/releases/download/v1.1.2/kairosdb_1.1.2-1_all.deb
+  - "sudo dpkg -i /home/travis/kairosdb.deb"
+  - sudo service kairosdb start
