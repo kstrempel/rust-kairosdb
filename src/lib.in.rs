@@ -69,7 +69,6 @@ impl Client {
     fn run_query(&self, query: &Query) -> Result<String, KairoError> {
         let body = try!(serde_json::to_string(query));
         info!("Run query {}", body);
-        println!("Run query {}", body);
         let mut response = try!(self.http_client
                                 .post(&format!("{}/api/v1/datapoints/query",
                                                self.base_url))
@@ -92,7 +91,6 @@ impl Client {
 
     fn parse_query_result(&self, body: &str) -> Result<ResultMap,
                                                        KairoError> {
-        println!("Result {}", body);
         let result = QueryResult::new();
         result.parse_result(body)
     }
