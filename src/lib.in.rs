@@ -20,6 +20,13 @@ pub struct Client {
 }
 
 impl Client {
+    /// Constructs a new KairosDB Client
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// let client = Client::new("localhost", 8080);
+    /// ```
     pub fn new(host: &str, port: u32) -> Client {
         info!("create new client host: {} port: {}", host, port);
         Client {
@@ -28,6 +35,14 @@ impl Client {
         }
     }
 
+    /// Returns the version string of the KairosDB Server
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// let client = Client::new("localhost", 8080);
+    /// assert!(client.version().unwrap().starts_with("KairosDB"));
+    /// ```
     pub fn version(&self) -> Result<String, KairoError> {
         let mut response = try!(self.http_client
             .get(&format!("{}/api/v1/version", self.base_url))
@@ -41,6 +56,21 @@ impl Client {
         Ok(version.version)
     }
 
+    /// Remote method to add datapoints to the time series database
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// use kairosdb::datapoints::Datapoints;
+    ///
+    /// let client = Client::new("localhost", 8080);
+    /// let mut datapoints = Datapoints::new("first", 0);
+    /// datapoints.add(1475513259000, 11);
+    /// datapoints.add(1475513259001, 12);
+    /// datapoints.add_tag("test", "first");
+    /// let result = client.add(&datapoints);
+    /// assert!(result.is_ok())
+    /// ```
     pub fn add(&self, datapoints: &Datapoints) -> Result<(), KairoError> {
         info!("Add datapoints {:?}", datapoints);
         let body = try!(serde_json::to_string(&vec![datapoints]));
