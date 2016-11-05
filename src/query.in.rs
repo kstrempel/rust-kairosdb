@@ -101,3 +101,23 @@ impl Metric {
         }
     }
 }
+
+impl Aggregator {
+    pub fn new(name: &str,
+               sampling: RelativeTime) -> Aggregator {
+        Aggregator{
+            name: name.to_string(),
+            sampling: sampling
+        }
+    }
+}
+
+impl RelativeTime {
+    pub fn new(value: i64,
+               unit: TimeUnit) -> RelativeTime {
+        RelativeTime{
+            value: value,
+            unit: unit
+        }
+    }
+}

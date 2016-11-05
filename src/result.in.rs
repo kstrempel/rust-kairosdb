@@ -17,13 +17,13 @@ pub struct Query {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ResultValues {
     name: String,
-    values: Vec<Vec<i64>>
+    values: Vec<Vec<f64>>
 }
 
 #[derive(Debug)]
 pub struct Value {
     pub time: u64,
-    pub value: i64
+    pub value: f64
 }
 
 pub type ResultMap = HashMap<String, ResultVector>;
@@ -43,7 +43,7 @@ impl QueryResult {
             for r in query.results {
                 let mut values : ResultVector = Vec::new();
                 for v in r.values {
-                    values.push(Value{time: v[0] as u64, value: v[1]});
+                    values.push(Value{time: v[0] as u64, value: v[1] as f64});
                 }
                 result.insert(r.name, values);
             }
