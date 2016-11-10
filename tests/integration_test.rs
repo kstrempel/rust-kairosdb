@@ -26,8 +26,8 @@ fn get_version_wrong_host() {
 fn add_datapoints() {
     let client = Client::new("localhost", 8080);
     let mut datapoints = Datapoints::new("first", 0);
-    datapoints.add(1475513259000, 11);
-    datapoints.add(1475513259001, 12);
+    datapoints.add(1475513259000, 11.0);
+    datapoints.add(1475513259001, 12.0);
     datapoints.add_tag("test", "first");
     let result = client.add(&datapoints);
     assert!(result.is_ok())
@@ -38,9 +38,9 @@ fn simple_query() {
     let client = Client::new("localhost", 8080);
 
     let mut datapoints = Datapoints::new("second", 0);
-    datapoints.add(1147724326001, 111);
-    datapoints.add(1147724326040, 112);
-    datapoints.add(1147724326051, 115);
+    datapoints.add(1147724326001, 111.0);
+    datapoints.add(1147724326040, 112.0);
+    datapoints.add(1147724326051, 115.0);
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
@@ -72,9 +72,9 @@ fn metrics_average_query() {
     let client = Client::new("localhost", 8080);
 
     let mut datapoints = Datapoints::new("second", 0);
-    datapoints.add(1147724326001, 111);
-    datapoints.add(1147724326040, 112);
-    datapoints.add(1147724326051, 115);
+    datapoints.add(1147724326001, 111.0);
+    datapoints.add(1147724326040, 112.0);
+    datapoints.add(1147724326051, 115.0);
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
