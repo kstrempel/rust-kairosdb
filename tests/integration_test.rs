@@ -6,7 +6,8 @@ extern crate log;
 use std::collections::HashMap;
 use kairosdb::Client;
 use kairosdb::datapoints::Datapoints;
-use kairosdb::query::{Query, Metric, Time, TimeUnit, RelativeTime, Aggregator};
+use kairosdb::query::{Query, Metric, Time, TimeUnit,
+                      RelativeTime, Aggregator, AggregatorType};
 
 #[test]
 fn get_version() {
@@ -84,7 +85,7 @@ fn metrics_average_query() {
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
-    let aggregator = Aggregator::new("avg", RelativeTime::new(10,TimeUnit::MINUTES));
+    let aggregator = Aggregator::new(AggregatorType::AVG, RelativeTime::new(10,TimeUnit::MINUTES));
     let metric = Metric::new("second",tags, vec![aggregator]);
     query.add(metric);
 
