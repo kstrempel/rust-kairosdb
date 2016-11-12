@@ -1,9 +1,11 @@
 extern crate kairosdb;
 extern crate env_logger;
+extern crate chrono;
 
 #[macro_use]
 extern crate log;
 use std::collections::HashMap;
+use chrono::Local;
 use kairosdb::Client;
 use kairosdb::datapoints::Datapoints;
 use kairosdb::query::{Query, Metric, Time, TimeUnit,
@@ -24,30 +26,43 @@ fn get_version_wrong_host() {
 }
 
 #[test]
-fn add_datapoints() {
+fn add_datapoints_ns() {
     let client = Client::new("localhost", 8080);
     let mut datapoints = Datapoints::new("first", 0);
-    datapoints.add(1475513259000, 11.0);
-    datapoints.add(1475513259001, 12.0);
+    datapoints.add_ms(1475513259000, 11.0);
+    datapoints.add_ms(1475513259001, 12.0);
     datapoints.add_tag("test", "first");
     let result = client.add(&datapoints);
     assert!(result.is_ok())
 }
 
 #[test]
+fn add_datapoints() {
+    let client = Client::new("localhost", 8080);
+    let mut datapoints = Datapoints::new("first", 0);
+    let dt = Local::now();
+    datapoints.add(dt, 11.0);
+    datapoints.add(dt, 12.0);
+    datapoints.add_tag("test", "second");
+    let result = client.add(&datapoints);
+    assert!(result.is_ok())
+}
+
+
+#[test]
 fn simple_query() {
     let client = Client::new("localhost", 8080);
 
     let mut datapoints = Datapoints::new("second", 0);
-    datapoints.add(1147724326001, 111.0);
-    datapoints.add(1147724326040, 112.0);
-    datapoints.add(1147724326051, 115.0);
+    datapoints.add_ms(1147724326001, 111.0);
+    datapoints.add_ms(1147724326040, 112.0);
+    datapoints.add_ms(1147724326051, 115.0);
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
     let mut query = Query::new(
-        Time::Absolute(1147724326000),
-        Time::Absolute(1147724326040));
+        Time::Nanoseconds(1147724326000),
+        Time::Nanoseconds(1147724326040));
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
@@ -73,19 +88,21 @@ fn metrics_average_query() {
     let client = Client::new("localhost", 8080);
 
     let mut datapoints = Datapoints::new("second", 0);
-    datapoints.add(1147724326001, 111.0);
-    datapoints.add(1147724326040, 112.0);
-    datapoints.add(1147724326051, 115.0);
+    datapoints.add_ms(1147724326001, 111.0);
+    datapoints.add_ms(1147724326040, 112.0);
+    datapoints.add_ms(1147724326051, 115.0);
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
     let mut query = Query::new(
-        Time::Absolute(1147724326000),
-        Time::Absolute(1147724326040));
+        Time::Nanoseconds(1147724326000),
+        Time::Nanoseconds(1147724326040));
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
-    let aggregator = Aggregator::new(AggregatorType::AVG, RelativeTime::new(10,TimeUnit::MINUTES));
+    let aggregator = Aggregator::new(
+        AggregatorType::AVG,
+        RelativeTime::new(10, TimeUnit::MINUTES));
     let metric = Metric::new("second",tags, vec![aggregator]);
     query.add(metric);
 
