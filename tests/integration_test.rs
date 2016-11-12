@@ -6,7 +6,8 @@ extern crate log;
 use std::collections::HashMap;
 use kairosdb::Client;
 use kairosdb::datapoints::Datapoints;
-use kairosdb::query::{Query, Metric, Time, TimeUnit, RelativeTime, Aggregator};
+use kairosdb::query::{Query, Metric, Time, TimeUnit,
+                      RelativeTime, Aggregator, AggregatorType};
 
 #[test]
 fn get_version() {
@@ -26,8 +27,8 @@ fn get_version_wrong_host() {
 fn add_datapoints() {
     let client = Client::new("localhost", 8080);
     let mut datapoints = Datapoints::new("first", 0);
-    datapoints.add(1475513259000, 11);
-    datapoints.add(1475513259001, 12);
+    datapoints.add(1475513259000, 11.0);
+    datapoints.add(1475513259001, 12.0);
     datapoints.add_tag("test", "first");
     let result = client.add(&datapoints);
     assert!(result.is_ok())
@@ -38,9 +39,9 @@ fn simple_query() {
     let client = Client::new("localhost", 8080);
 
     let mut datapoints = Datapoints::new("second", 0);
-    datapoints.add(1147724326001, 111);
-    datapoints.add(1147724326040, 112);
-    datapoints.add(1147724326051, 115);
+    datapoints.add(1147724326001, 111.0);
+    datapoints.add(1147724326040, 112.0);
+    datapoints.add(1147724326051, 115.0);
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
@@ -72,9 +73,9 @@ fn metrics_average_query() {
     let client = Client::new("localhost", 8080);
 
     let mut datapoints = Datapoints::new("second", 0);
-    datapoints.add(1147724326001, 111);
-    datapoints.add(1147724326040, 112);
-    datapoints.add(1147724326051, 115);
+    datapoints.add(1147724326001, 111.0);
+    datapoints.add(1147724326040, 112.0);
+    datapoints.add(1147724326051, 115.0);
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
@@ -84,7 +85,7 @@ fn metrics_average_query() {
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
-    let aggregator = Aggregator::new("avg", RelativeTime::new(10,TimeUnit::MINUTES));
+    let aggregator = Aggregator::new(AggregatorType::AVG, RelativeTime::new(10,TimeUnit::MINUTES));
     let metric = Metric::new("second",tags, vec![aggregator]);
     query.add(metric);
 

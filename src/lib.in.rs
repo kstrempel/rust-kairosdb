@@ -65,8 +65,8 @@ impl Client {
     ///
     /// let client = Client::new("localhost", 8080);
     /// let mut datapoints = Datapoints::new("first", 0);
-    /// datapoints.add(1475513259000, 11);
-    /// datapoints.add(1475513259001, 12);
+    /// datapoints.add(1475513259000, 11.0);
+    /// datapoints.add(1475513259001, 12.0);
     /// datapoints.add_tag("test", "first");
     /// let result = client.add(&datapoints);
     /// assert!(result.is_ok())
@@ -99,6 +99,7 @@ impl Client {
     fn run_query(&self, query: &Query) -> Result<String, KairoError> {
         let body = try!(serde_json::to_string(query));
         info!("Run query {}", body);
+        println!("Body {}", body);
         let mut response = try!(self.http_client
                                 .post(&format!("{}/api/v1/datapoints/query",
                                                self.base_url))
@@ -110,6 +111,7 @@ impl Client {
             StatusCode::Ok => {
                 let mut result_body = String::new();
                 try!(response.read_to_string(&mut result_body));
+                println!("Response {}", result_body);
                 Ok(result_body)
             },
             _ => {

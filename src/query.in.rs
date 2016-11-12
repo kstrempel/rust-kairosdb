@@ -13,6 +13,22 @@ pub enum TimeUnit {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub enum AggregatorType {
+    #[serde(rename = "avg")]
+    AVG,
+    #[serde(rename = "dev")]
+    DEV,
+    #[serde(rename = "count")]
+    COUNT,
+    #[serde(rename = "first")]
+    FIRST,
+    #[serde(rename = "gaps")]
+    GAPS,
+    #[serde(rename = "histogram")]
+    HISTOGRAM
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Query {
     #[serde(skip_serializing_if = "Option::is_none")]
     start_absolute: Option<i64>,
@@ -47,7 +63,7 @@ pub struct Metric {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Aggregator {
-    name: String,
+    name: AggregatorType,
     sampling: RelativeTime
 }
 
@@ -103,10 +119,10 @@ impl Metric {
 }
 
 impl Aggregator {
-    pub fn new(name: &str,
+    pub fn new(name: AggregatorType,
                sampling: RelativeTime) -> Aggregator {
         Aggregator{
-            name: name.to_string(),
+            name: name,
             sampling: sampling
         }
     }
