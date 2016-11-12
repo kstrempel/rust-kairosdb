@@ -1,4 +1,5 @@
-use std::collections::HashMap; 
+use std::collections::HashMap;
+use chrono::{DateTime, UTC, Local};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum TimeUnit {
@@ -49,7 +50,9 @@ pub struct RelativeTime {
 }
 
 pub enum Time {
-    Absolute(i64),
+    UTC(DateTime<UTC>),
+    Local(DateTime<Local>),
+    Nanoseconds(i64),
     Relative{value: i64, unit: TimeUnit}
 }
 
@@ -77,12 +80,16 @@ impl Query {
     pub fn new(start: Time, end: Time) -> Query {
         Query{
             start_absolute: match start {
-                Time::Absolute(n) => Some(n),
-                _ => None
+                Time::Nanoseconds(n) => Some(n),
+                Time::Local(n) => Some(n.timestamp() * 1000),
+                Time::UTC(n) => Some(n.timestamp() * 1000),
+                 _ => None
             },
             end_absolute: match end {
-                Time::Absolute(n) => Some(n),
-                _=> None
+                Time::Nanoseconds(n) => Some(n),
+                Time::Local(n) => Some(n.timestamp() * 1000),
+                Time::UTC(n) => Some(n.timestamp() * 1000),
+                 _=> None
             },
             start_relative: match start {
                 Time::Relative{value, unit} => Some(RelativeTime{

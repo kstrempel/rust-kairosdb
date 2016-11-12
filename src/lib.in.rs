@@ -65,8 +65,8 @@ impl Client {
     ///
     /// let client = Client::new("localhost", 8080);
     /// let mut datapoints = Datapoints::new("first", 0);
-    /// datapoints.add(1475513259000, 11.0);
-    /// datapoints.add(1475513259001, 12.0);
+    /// datapoints.add_ms(1475513259000, 11.0);
+    /// datapoints.add_ms(1475513259001, 12.0);
     /// datapoints.add_tag("test", "first");
     /// let result = client.add(&datapoints);
     /// assert!(result.is_ok())

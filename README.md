@@ -21,7 +21,7 @@ Development is ongoing and this library is currently only usable for adding data
 - [ ] List Metric Names
 - [ ] List Tag Names
 - [ ] List Tag Values
-- [ ] Query Metrics
+- [x] Query Metrics
 - [ ] Aggregators
 - [ ] Query Metric Tags
 - [ ] Roll-ups

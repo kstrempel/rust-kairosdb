@@ -4,6 +4,7 @@ extern crate serde_json;
 extern crate log;
 extern crate env_logger;
 extern crate hyper;
+extern crate chrono;
 
 pub mod datapoints;
 pub mod query;
