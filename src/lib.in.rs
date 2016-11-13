@@ -90,19 +90,28 @@ impl Client {
     }
 
     pub fn query(&self, query: &Query) -> Result<ResultMap, KairoError> {
-        match self.run_query(query) {
+        match self.run_query(query, "query") {
             Ok(body) => self.parse_query_result(&body),
             Err(err) => Err(err)
         }
     }
 
-    fn run_query(&self, query: &Query) -> Result<String, KairoError> {
+    pub fn delete(&self, query: &Query) -> Result<(), KairoError> {
+        match self.run_query(query, "delete") {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err)
+        }
+    }
+
+    fn run_query(&self,
+                 query: &Query,
+                 endpoint: &str) -> Result<String, KairoError> {
         let body = try!(serde_json::to_string(query));
         info!("Run query {}", body);
-        println!("Body {}", body);
         let mut response = try!(self.http_client
-                                .post(&format!("{}/api/v1/datapoints/query",
-                                               self.base_url))
+                                .post(&format!("{}/api/v1/datapoints/{}",
+                                               self.base_url,
+                                               endpoint))
                                 .header(Connection::close())
                                 .body(&body)
                                 .send());
@@ -111,9 +120,11 @@ impl Client {
             StatusCode::Ok => {
                 let mut result_body = String::new();
                 try!(response.read_to_string(&mut result_body));
-                println!("Response {}", result_body);
                 Ok(result_body)
             },
+            StatusCode::NoContent => {
+               Ok("".to_string())
+            }
             _ => {
                 Err(KairoError::Kairo(
                     format!("Bad response code: {:?}", response.status)))
@@ -126,5 +137,4 @@ impl Client {
         let result = QueryResult::new();
         result.parse_result(body)
     }
-
 }
