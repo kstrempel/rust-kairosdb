@@ -1,18 +1,18 @@
-# Rust Client for KairosDB &emsp; ![Build Status](https://api.travis-ci.org/kstrempel/rust-kairosdb.svg?branch=master)![Cargo](https://img.shields.io/crates/v/kairosdb.svg)
+# Rust Client for KairosDB &emsp; [![Build Status](https://api.travis-ci.org/kstrempel/rust-kairosdb.svg?branch=master)](https://travis-ci.org/kstrempel/rust-kairosdb) [![Cargo](https://img.shields.io/crates/v/kairosdb.svg)](https://crates.io/crates/kairosdb)
 
-# Introduction
+## Introduction
 
 A simple rust language client for the time series database KairosDB.
 
 Development is ongoing. Currently you can add Datapoints, query them and delete them.
 
-# Documentation
+## Documentation
 
 [Full documentation for `rust-kairosdb`.](https://kstrempel.github.io/rust-kairosdb/kairosdb/index.html)
 
-# TODO's
+## TODO's
 
-## Endpoints
+### Endpoints
 
 - [x] Add Data Points
 - [x] Delete Data Points
@@ -32,7 +32,7 @@ Development is ongoing. Currently you can add Datapoints, query them and delete 
 - [ ] Update Roll-up Task
 - [x] Version
 
-## Documentation
+### Documentation
 
 - [ ] Overview
 - [ ] Add Data Points
