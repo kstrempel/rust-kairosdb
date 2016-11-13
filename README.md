@@ -15,7 +15,7 @@ Development is ongoing and this library is currently only usable for adding data
 ## Endpoints
 
 - [x] Add Data Points
-- [ ] Delete Data Points
+- [x] Delete Data Points
 - [ ] Delete Metric
 - [ ] Health Checks
 - [ ] List Metric Names

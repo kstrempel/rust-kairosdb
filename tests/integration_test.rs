@@ -5,7 +5,9 @@ extern crate chrono;
 #[macro_use]
 extern crate log;
 use std::collections::HashMap;
+use std::ops::{Add, Sub};
 use chrono::Local;
+use chrono::Duration;
 use kairosdb::Client;
 use kairosdb::datapoints::Datapoints;
 use kairosdb::query::{Query, Metric, Time, TimeUnit,
@@ -103,7 +105,7 @@ fn metrics_average_query() {
     let aggregator = Aggregator::new(
         AggregatorType::AVG,
         RelativeTime::new(10, TimeUnit::MINUTES));
-    let metric = Metric::new("second",tags, vec![aggregator]);
+    let metric = Metric::new("second", tags, vec![aggregator]);
     query.add(metric);
 
     let result = client.query(&query).unwrap();
@@ -114,4 +116,37 @@ fn metrics_average_query() {
 
     let array = &result["second"];
     assert_eq!(array.len(), 1);
+}
+
+#[test]
+fn simple_query_with_delete() {
+    let client = Client::new("localhost", 8080);
+    let mut datapoints = Datapoints::new("third", 0);
+    let duration = Duration::minutes(1);
+    let dt = Local::now();
+    datapoints.add(dt, 11.0);
+    datapoints.add(dt.add(duration), 12.0);
+    datapoints.add_tag("test", "third");
+
+    let result = client.add(&datapoints);
+    assert!(result.is_ok());
+
+    let mut query = Query::new(Time::Local(dt.sub(duration)),
+                               Time::Local(dt.add(Duration::minutes(2))));
+    let mut tags: HashMap<String, Vec<String>> = HashMap::new();
+    tags.insert("test".to_string(), vec!["third".to_string()]);
+    let metric = Metric::new("third", tags, vec![]);
+    query.add(metric);
+
+    let result = client.query(&query).unwrap();
+    assert!(result.contains_key("third"));
+    assert_eq!(result["third"].len(),2 );
+
+    let result = client.delete(&query);
+    assert!(result.is_ok());
+
+    let result = client.query(&query).unwrap();
+    assert!(result.contains_key("third"));
+    assert_eq!(result["third"].len(),0 );
+
 }
