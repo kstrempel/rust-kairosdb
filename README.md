@@ -1,4 +1,4 @@
-# Rust Client for KairosDB &emsp; ![Build Status](https://api.travis-ci.org/kstrempel/rust-kairosdb.svg?branch=master)
+# Rust Client for KairosDB &emsp; ![Build Status](https://api.travis-ci.org/kstrempel/rust-kairosdb.svg?branch=master)![Cargo](https://img.shields.io/crates/v/kairosdb.svg)
 
 # Introduction
 
