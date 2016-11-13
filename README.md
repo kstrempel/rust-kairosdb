@@ -4,7 +4,7 @@
 
 A simple rust language client for the time series database KairosDB.
 
-Development is ongoing and this library is currently only usable for adding datapoints to a KairosDB server instance.
+Development is ongoing. Currently you can add Datapoints, query them and delete them.
 
 # Documentation
 

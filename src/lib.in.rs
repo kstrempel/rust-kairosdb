@@ -120,7 +120,6 @@ impl Client {
             StatusCode::Ok => {
                 let mut result_body = String::new();
                 try!(response.read_to_string(&mut result_body));
-                print!("{}", result_body);
                 Ok(result_body)
             },
             StatusCode::NoContent => {
