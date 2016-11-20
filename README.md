@@ -1,10 +1,83 @@
 # Rust Client for KairosDB &emsp; [![Build Status](https://api.travis-ci.org/kstrempel/rust-kairosdb.svg?branch=master)](https://travis-ci.org/kstrempel/rust-kairosdb) [![Cargo](https://img.shields.io/crates/v/kairosdb.svg)](https://crates.io/crates/kairosdb)
 
-## Introduction
+## Description
 
 A simple rust language client for the time series database KairosDB.
 
 Development is ongoing. Currently you can add Datapoints, query them and delete them.
+
+## Introduction
+
+The Client itself is used as the central access point, from which
+numerous operations are defined implementing each of the specific
+KairosDB APIs.
+
+```
+use kairosdb::Client;
+let client = Client::new("localhost", 8080);
+```
+
+A main job of a time series database is collecting and querying data.
+To add data to KairosDB we have to create a `Datapoints` struct and add
+the data to the object.
+
+```
+use kairosdb::datapoints::Datapoints;
+
+let mut datapoints = Datapoints::new("myMetric", 0);
+datapoints.add_ms(1000, 11.0);
+datapoints.add_ms(2000, 12.0);
+datapoints.add_ms(3000, 13.0);
+datapoints.add_tag("test", "first");
+let result = client.add(&datapoints);
+assert!(result.is_ok());
+```
+
+To query data we have to create a `Query` Object with the start and end
+of the query. The start and the end can be a relative time. Check the
+'Time' structure for more information.
+
+```
+use std::collections::HashMap;
+use kairosdb::query::{Query, Time, Metric, TimeUnit};
+
+let mut query = Query::new(
+   Time::Nanoseconds(1000),
+   Time::Nanoseconds(2000));
+
+let mut tags: HashMap<String, Vec<String>> = HashMap::new();
+let metric = Metric::new("myMetric", tags, vec![]);
+query.add(metric);
+
+let result = client.query(&query).unwrap();
+
+assert!(result.contains_key("myMetric"));
+assert_eq!(result["myMetric"].len(), 2);
+assert_eq!(result["myMetric"][0].time, 1000);
+assert_eq!(result["myMetric"][0].value, 11.0);
+assert_eq!(result["myMetric"][1].time, 2000);
+assert_eq!(result["myMetric"][1].value, 12.0);
+```
+
+Deleting data is like querying data.
+
+```
+use std::collections::HashMap;
+use kairosdb::query::{Query, Time, TimeUnit, Metric};
+
+let mut query = Query::new(
+   Time::Nanoseconds(1000),
+   Time::Nanoseconds(3000));
+
+let mut tags: HashMap<String, Vec<String>> = HashMap::new();
+tags.insert("test".to_string(), vec!["first".to_string()]);
+let metric = Metric::new("myMetric", tags, vec![]);
+query.add(metric);
+
+let result = client.delete(&query);
+assert!(result.is_ok());
+```
+
 
 ## Documentation
 
@@ -34,15 +107,15 @@ Development is ongoing. Currently you can add Datapoints, query them and delete 
 
 ### Documentation
 
-- [ ] Overview
-- [ ] Add Data Points
-- [ ] Delete Data Points
+- [x] Overview
+- [x] Add Data Points
+- [x] Delete Data Points
 - [ ] Delete Metric
 - [ ] Health Checks
 - [ ] List Metric Names
 - [ ] List Tag Names
 - [ ] List Tag Values
-- [ ] Query Metrics
+- [x] Query Metrics
 - [ ] Aggregators
 - [ ] Query Metric Tags
 - [ ] Roll-ups
