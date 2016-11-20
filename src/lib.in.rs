@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 Kai Strempel
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 use std::io::Read;
 
 use hyper::header::Connection;
@@ -56,7 +72,7 @@ impl Client {
         Ok(version.version)
     }
 
-    /// Remote method to add datapoints to the time series database
+    /// Method to add datapoints to the time series database
     ///
     /// # Example
     /// ```
@@ -89,6 +105,20 @@ impl Client {
         }
     }
 
+    /// Runs a query on the database.
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// use kairosdb::query::{Query, Time, TimeUnit};
+    ///
+    /// let client = Client::new("localhost", 8080);
+    /// let query = Query::new(
+    ///    Time::Nanoseconds(1),
+    ///    Time::Relative{value: 1, unit: TimeUnit::WEEKS});
+    /// let result = client.query(&query);
+    /// assert!(result.is_ok())
+    /// ```
     pub fn query(&self, query: &Query) -> Result<ResultMap, KairoError> {
         match self.run_query(query, "query") {
             Ok(body) => self.parse_query_result(&body),
@@ -96,6 +126,21 @@ impl Client {
         }
     }
 
+    /// Runs a delete query on the database. View the query structure
+    /// to understand more about.
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// use kairosdb::query::{Query, Time, TimeUnit};
+    ///
+    /// let client = Client::new("localhost", 8080);
+    /// let query = Query::new(
+    ///    Time::Nanoseconds(1),
+    ///    Time::Relative{value: 1, unit: TimeUnit::WEEKS});
+    /// let result = client.delete(&query);
+    /// assert!(result.is_ok())
+    /// ```
     pub fn delete(&self, query: &Query) -> Result<(), KairoError> {
         match self.run_query(query, "delete") {
             Ok(_) => Ok(()),
@@ -131,6 +176,7 @@ impl Client {
             }
         }
     }
+
 
     fn parse_query_result(&self, body: &str) -> Result<ResultMap,
                                                        KairoError> {
