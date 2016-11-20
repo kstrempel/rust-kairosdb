@@ -2,7 +2,7 @@
 
 ## Description
 
-A simple rust language client for the time series database KairosDB.
+A simple rust language client for the time series database [KairosDB](http://kairosdb.github.io/).
 
 Development is ongoing. Currently you can add Datapoints, query them and delete them.
 
