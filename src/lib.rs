@@ -100,6 +100,17 @@
 //! assert!(result.is_ok());
 //! # }
 //! ```
+//!
+//! Getting the current set of metric names is a simple
+//! function call.
+//!
+//! ```
+//! # use kairosdb::Client;
+//! # let client = Client::new("localhost", 8080);
+//!
+//! let result = client.metricnames();
+//! assert!(result.unwrap().contains(&"myMetric".to_string()));
+//! ```
 
 extern crate serde;
 extern crate serde_json;

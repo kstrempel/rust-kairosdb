@@ -149,7 +149,7 @@ impl Client {
         }
     }
 
-    /// Returns a list with all metricnames
+    /// Returns a list with all metric names
     ///
     /// # Example
     /// ```
