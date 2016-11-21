@@ -180,6 +180,31 @@ impl Client {
         }
     }
 
+    /// Deleting a metric
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// let client = Client::new("localhost", 8080);
+    ///
+    /// let result = client.delete_metric(&"first");
+    /// assert!(result.is_ok());
+    /// ```
+    pub fn delete_metric(&self, metric: &str) -> Result<(), KairoError> {
+        let response = self.http_client
+            .delete(&format!("{}/api/v1/metric/{}", self.base_url, metric))
+            .header(Connection::close())
+            .send()?;
+
+        match response.status {
+            StatusCode::NoContent => Ok(()),
+            _ => {
+                Err(KairoError::Kairo(
+                    format!("Bad response code: {:?}", response.status)))
+            }
+        }
+    }
+
     fn run_query(&self,
                  query: &Query,
                  endpoint: &str) -> Result<String, KairoError> {
