@@ -156,11 +156,11 @@ impl Client {
     /// use kairosdb::Client;
     /// let client = Client::new("localhost", 8080);
     ///
-    /// let result = client.metricnames();
+    /// let result = client.list_metrics();
     /// assert!(result.is_ok());
     /// assert!(result.unwrap().contains(&"first".to_string()));
     /// ```
-    pub fn metricnames(&self) -> Result<Vec<String>, KairoError> {
+    pub fn list_metrics(&self) -> Result<Vec<String>, KairoError> {
         info!("Get metricnames");
         let mut response = self.http_client
             .get(&format!("{}/api/v1/metricnames", self.base_url))

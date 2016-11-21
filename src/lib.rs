@@ -108,9 +108,20 @@
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
 //!
-//! let result = client.metricnames();
+//! let result = client.list_metrics();
 //! assert!(result.unwrap().contains(&"myMetric".to_string()));
 //! ```
+//!
+//! Delete a metric by name
+//!
+//! ```
+//! # use kairosdb::Client;
+//! # let client = Client::new("localhost", 8080);
+//!
+//! let result = client.delete_metric(&"myMetric");
+//! assert!(result.is_ok());
+//! ```
+
 
 extern crate serde;
 extern crate serde_json;
