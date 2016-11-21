@@ -23,6 +23,7 @@ use datapoints::Datapoints;
 use query::Query;
 use result::{QueryResult, ResultMap};
 use error::KairoError;
+use helper::parse_metricnames_result;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Version {
@@ -60,13 +61,13 @@ impl Client {
     /// assert!(client.version().unwrap().starts_with("KairosDB"));
     /// ```
     pub fn version(&self) -> Result<String, KairoError> {
-        let mut response = try!(self.http_client
+        let mut response = self.http_client
             .get(&format!("{}/api/v1/version", self.base_url))
             .header(Connection::close())
-            .send());
+            .send()?;
         let mut body = String::new();
-        try!(response.read_to_string(&mut body));
-        let version: Version = try!(serde_json::from_str(&body));
+        response.read_to_string(&mut body)?;
+        let version: Version = serde_json::from_str(&body)?;
 
         info!("get server version {:?}", version.version);
         Ok(version.version)
@@ -89,12 +90,12 @@ impl Client {
     /// ```
     pub fn add(&self, datapoints: &Datapoints) -> Result<(), KairoError> {
         info!("Add datapoints {:?}", datapoints);
-        let body = try!(serde_json::to_string(&vec![datapoints]));
-        let response = try!(self.http_client
+        let body = serde_json::to_string(&vec![datapoints])?;
+        let response = self.http_client
             .post(&format!("{}/api/v1/datapoints", self.base_url))
             .header(Connection::close())
             .body(&body)
-            .send());
+            .send()?;
         match response.status {
             StatusCode::NoContent=> Ok(()),
             _ => {
@@ -161,16 +162,16 @@ impl Client {
     /// ```
     pub fn metricnames(&self) -> Result<Vec<String>, KairoError> {
         info!("Get metricnames");
-        let mut response = try!(self.http_client
-                                .get(&format!("{}/api/v1/metricnames",
-                                              self.base_url))
-                                .header(Connection::close())
-                                .send());
+        let mut response = self.http_client
+            .get(&format!("{}/api/v1/metricnames", self.base_url))
+            .header(Connection::close())
+            .send()?;
+
         match response.status {
             StatusCode::Ok => {
                 let mut result_body = String::new();
-                try!(response.read_to_string(&mut result_body));
-                Ok(vec![])
+                response.read_to_string(&mut result_body)?;
+                Ok(parse_metricnames_result(&result_body)?)
             },
             _ => {
                 Err(KairoError::Kairo(
@@ -182,20 +183,20 @@ impl Client {
     fn run_query(&self,
                  query: &Query,
                  endpoint: &str) -> Result<String, KairoError> {
-        let body = try!(serde_json::to_string(query));
+        let body = serde_json::to_string(query)?;
         info!("Run query {}", body);
-        let mut response = try!(self.http_client
-                                .post(&format!("{}/api/v1/datapoints/{}",
-                                               self.base_url,
-                                               endpoint))
-                                .header(Connection::close())
-                                .body(&body)
-                                .send());
+        let mut response = self.http_client
+            .post(&format!("{}/api/v1/datapoints/{}",
+                           self.base_url,
+                           endpoint))
+            .header(Connection::close())
+            .body(&body)
+            .send()?;
 
         match response.status {
             StatusCode::Ok => {
                 let mut result_body = String::new();
-                try!(response.read_to_string(&mut result_body));
+                response.read_to_string(&mut result_body)?;
                 Ok(result_body)
             },
             StatusCode::NoContent => {

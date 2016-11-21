@@ -113,6 +113,7 @@ pub mod datapoints;
 pub mod query;
 pub mod result;
 mod error;
+mod helper;
 
 #[cfg(feature = "serde_macros")]
 include!("lib.in.rs");
