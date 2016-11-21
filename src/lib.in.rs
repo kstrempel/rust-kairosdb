@@ -148,6 +148,37 @@ impl Client {
         }
     }
 
+    /// Returns a list with all metricnames
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// let client = Client::new("localhost", 8080);
+    ///
+    /// let result = client.metricnames();
+    /// assert!(result.is_ok());
+    /// assert!(result.unwrap().contains(&"first".to_string()));
+    /// ```
+    pub fn metricnames(&self) -> Result<Vec<String>, KairoError> {
+        info!("Get metricnames");
+        let mut response = try!(self.http_client
+                                .get(&format!("{}/api/v1/metricnames",
+                                              self.base_url))
+                                .header(Connection::close())
+                                .send());
+        match response.status {
+            StatusCode::Ok => {
+                let mut result_body = String::new();
+                try!(response.read_to_string(&mut result_body));
+                Ok(vec![])
+            },
+            _ => {
+                Err(KairoError::Kairo(
+                    format!("Bad response code: {:?}", response.status)))
+            }
+        }
+    }
+
     fn run_query(&self,
                  query: &Query,
                  endpoint: &str) -> Result<String, KairoError> {
