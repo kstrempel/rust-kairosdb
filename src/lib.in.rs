@@ -154,13 +154,18 @@ impl Client {
     /// # Example
     /// ```
     /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
     /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # datapoints.add_tag("test", "first");
+    /// # let result = client.add(&datapoints);
     ///
-    /// let result = client.metricnames();
+    /// let result = client.list_metrics();
     /// assert!(result.is_ok());
     /// assert!(result.unwrap().contains(&"first".to_string()));
     /// ```
-    pub fn metricnames(&self) -> Result<Vec<String>, KairoError> {
+    pub fn list_metrics(&self) -> Result<Vec<String>, KairoError> {
         info!("Get metricnames");
         let mut response = self.http_client
             .get(&format!("{}/api/v1/metricnames", self.base_url))
@@ -173,6 +178,38 @@ impl Client {
                 response.read_to_string(&mut result_body)?;
                 Ok(parse_metricnames_result(&result_body)?)
             },
+            _ => {
+                Err(KairoError::Kairo(
+                    format!("Bad response code: {:?}", response.status)))
+            }
+        }
+    }
+
+    /// Deleting a metric
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
+    /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # let result = client.add(&datapoints);
+    ///
+    /// let result = client.delete_metric(&"first");
+    /// assert!(result.is_ok());
+    /// # let result = client.list_metrics();
+    /// # assert!(result.is_ok());
+    /// # assert!(!result.unwrap().contains(&"first".to_string()));
+    /// ```
+    pub fn delete_metric(&self, metric: &str) -> Result<(), KairoError> {
+        let response = self.http_client
+            .delete(&format!("{}/api/v1/metric/{}", self.base_url, metric))
+            .header(Connection::close())
+            .send()?;
+
+        match response.status {
+            StatusCode::NoContent => Ok(()),
             _ => {
                 Err(KairoError::Kairo(
                     format!("Bad response code: {:?}", response.status)))

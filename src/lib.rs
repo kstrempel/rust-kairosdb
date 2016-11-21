@@ -57,13 +57,21 @@
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
 //! use std::collections::HashMap;
-//! use kairosdb::query::{Query, Time, Metric, TimeUnit};
+//! use kairosdb::query::{Query, Time, Metric};
+//! # use kairosdb::datapoints::Datapoints;
+//! # let mut datapoints = Datapoints::new("myMetric", 0);
+//! # datapoints.add_ms(1000, 11.0);
+//! # datapoints.add_ms(2000, 12.0);
+//! # datapoints.add_ms(3000, 13.0);
+//! # datapoints.add_tag("test", "first");
+//! # let result = client.add(&datapoints);
+//! # assert!(result.is_ok());
 //!
 //! let mut query = Query::new(
 //!    Time::Nanoseconds(1000),
 //!    Time::Nanoseconds(2000));
 //!
-//! let mut tags: HashMap<String, Vec<String>> = HashMap::new();
+//! let tags: HashMap<String, Vec<String>> = HashMap::new();
 //! let metric = Metric::new("myMetric", tags, vec![]);
 //! query.add(metric);
 //!
@@ -85,7 +93,7 @@
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
 //! use std::collections::HashMap;
-//! use kairosdb::query::{Query, Time, TimeUnit, Metric};
+//! use kairosdb::query::{Query, Time, Metric};
 //!
 //! let mut query = Query::new(
 //!    Time::Nanoseconds(1000),
@@ -107,10 +115,29 @@
 //! ```
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
+//! # use kairosdb::datapoints::Datapoints;
+//! # let mut datapoints = Datapoints::new("myMetric", 0);
+//! # datapoints.add_ms(1000, 11.0);
+//! # datapoints.add_ms(2000, 12.0);
+//! # datapoints.add_ms(3000, 13.0);
+//! # datapoints.add_tag("test", "first");
+//! # let result = client.add(&datapoints);
+//! # assert!(result.is_ok());
 //!
-//! let result = client.metricnames();
+//! let result = client.list_metrics();
 //! assert!(result.unwrap().contains(&"myMetric".to_string()));
 //! ```
+//!
+//! Delete a metric by name
+//!
+//! ```
+//! # use kairosdb::Client;
+//! # let client = Client::new("localhost", 8080);
+//!
+//! let result = client.delete_metric(&"myMetric");
+//! assert!(result.is_ok());
+//! ```
+
 
 extern crate serde;
 extern crate serde_json;
