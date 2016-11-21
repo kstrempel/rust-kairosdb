@@ -89,7 +89,7 @@
 //!
 //! let mut query = Query::new(
 //!    Time::Nanoseconds(1000),
-//!    Time::Nanoseconds(3000));
+//!    Time::Nanoseconds(2000));
 //!
 //! let mut tags: HashMap<String, Vec<String>> = HashMap::new();
 //! tags.insert("test".to_string(), vec!["first".to_string()]);
@@ -99,6 +99,17 @@
 //! let result = client.delete(&query);
 //! assert!(result.is_ok());
 //! # }
+//! ```
+//!
+//! Getting the current set of metric names is a simple
+//! function call.
+//!
+//! ```
+//! # use kairosdb::Client;
+//! # let client = Client::new("localhost", 8080);
+//!
+//! let result = client.metricnames();
+//! assert!(result.unwrap().contains(&"myMetric".to_string()));
 //! ```
 
 extern crate serde;
@@ -113,6 +124,7 @@ pub mod datapoints;
 pub mod query;
 pub mod result;
 mod error;
+mod helper;
 
 #[cfg(feature = "serde_macros")]
 include!("lib.in.rs");

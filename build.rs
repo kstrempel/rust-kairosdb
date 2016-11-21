@@ -26,6 +26,12 @@ fn main() {
     let dst = Path::new(&out_dir).join("result.rs");
 
     serde_codegen::expand(&src, &dst).unwrap();
+
+    let src = Path::new("src/helper.in.rs");
+    let dst = Path::new(&out_dir).join("helper.rs");
+
+    serde_codegen::expand(&src, &dst).unwrap();
+
 }
 
 #[cfg(not(feature = "serde_codegen"))]
