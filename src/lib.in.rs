@@ -154,7 +154,12 @@ impl Client {
     /// # Example
     /// ```
     /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
     /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # datapoints.add_tag("test", "first");
+    /// # let result = client.add(&datapoints);
     ///
     /// let result = client.list_metrics();
     /// assert!(result.is_ok());
@@ -185,10 +190,17 @@ impl Client {
     /// # Example
     /// ```
     /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
     /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # let result = client.add(&datapoints);
     ///
     /// let result = client.delete_metric(&"first");
     /// assert!(result.is_ok());
+    /// # let result = client.list_metrics();
+    /// # assert!(result.is_ok());
+    /// # assert!(!result.unwrap().contains(&"first".to_string()));
     /// ```
     pub fn delete_metric(&self, metric: &str) -> Result<(), KairoError> {
         let response = self.http_client
