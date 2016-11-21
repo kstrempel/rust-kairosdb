@@ -89,7 +89,7 @@
 //!
 //! let mut query = Query::new(
 //!    Time::Nanoseconds(1000),
-//!    Time::Nanoseconds(3000));
+//!    Time::Nanoseconds(2000));
 //!
 //! let mut tags: HashMap<String, Vec<String>> = HashMap::new();
 //! tags.insert("test".to_string(), vec!["first".to_string()]);
