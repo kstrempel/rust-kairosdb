@@ -86,6 +86,43 @@
 //! # }
 //! ```
 //!
+//! ```
+//! # fn main() {
+//! # use kairosdb::Client;
+//! # let client = Client::new("localhost", 8080);
+//! use std::collections::HashMap;
+//! use kairosdb::query::{Query, Time, Metric};
+//! # use kairosdb::datapoints::Datapoints;
+//! # let mut datapoints = Datapoints::new("myMetric", 0);
+//! # datapoints.add_ms(1000, 11.0);
+//! # datapoints.add_ms(2000, 12.0);
+//! # datapoints.add_ms(3000, 13.0);
+//! # datapoints.add_tag("test", "first");
+//! # let result = client.add(&datapoints);
+//! # assert!(result.is_ok());
+//!
+//! let mut query = Query::new(
+//!    Time::Nanoseconds(1000),
+//!    Time::Nanoseconds(2000));
+//!
+//! let tags: HashMap<String, Vec<String>> = HashMap::new();
+//! let aggregator = Aggregator::new(
+//!     AggregatorType::AVG,
+//!     RelativeTime::new(10, TimeUnit::MINUTES));
+//! let metric = Metric::new("myMetric", tags, vec![aggregator]);
+//! query.add(metric);
+//!
+//! let result = client.query(&query).unwrap();
+//! print!("{:?}", result);
+//! assert!(result.contains_key("myMetric"));
+//! assert_eq!(result["myMetric"].len(), 2);
+//! assert_eq!(result["myMetric"][0].time, 1000);
+//! assert_eq!(result["myMetric"][0].value, 11.0);
+//! assert_eq!(result["myMetric"][1].time, 2000);
+//! assert_eq!(result["myMetric"][1].value, 12.0);
+//! # }
+//! ```
+//! 
 //! Deleting data is like querying data.
 //!
 //! ```
