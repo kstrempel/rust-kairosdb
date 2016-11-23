@@ -76,7 +76,6 @@ pub enum Time {
 pub struct Metric {
     tags: HashMap<String, Vec<String>>,
     name: String,
-    limit: i64,
     aggregators: Vec<Aggregator>
 }
 
@@ -135,7 +134,6 @@ impl Metric {
         Metric{
             tags: tags,
             name: name.to_string(),
-            limit: 10,
             aggregators: aggregators
         }
     }
