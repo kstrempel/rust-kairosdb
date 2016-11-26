@@ -39,8 +39,8 @@ impl Datapoints {
         self.datapoints.push((datetime.timestamp() * 1000, value));
     }
 
-    pub fn add_ms(&mut self , ns: i64, value: f64) {
-        self.datapoints.push((ns, value));
+    pub fn add_ms(&mut self , ms: i64, value: f64) {
+        self.datapoints.push((ms, value));
     }
 
     pub fn add_tag(&mut self, name: &str, value: &str) {

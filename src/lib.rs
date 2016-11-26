@@ -57,7 +57,7 @@
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
 //! use std::collections::HashMap;
-//! use kairosdb::query::{Query, Time, Metric};
+//! use kairosdb::query::{Query, Time, Metric, Tags};
 //! # use kairosdb::datapoints::Datapoints;
 //! # let mut datapoints = Datapoints::new("myMetric", 0);
 //! # datapoints.add_ms(1000, 11.0);
@@ -71,8 +71,7 @@
 //!    Time::Nanoseconds(1000),
 //!    Time::Nanoseconds(2000));
 //!
-//! let tags: HashMap<String, Vec<String>> = HashMap::new();
-//! let metric = Metric::new("myMetric", tags, vec![]);
+//! let metric = Metric::new("myMetric", Tags::new(), vec![]);
 //! query.add(metric);
 //!
 //! let result = client.query(&query).unwrap();
@@ -92,7 +91,6 @@
 //! # fn main() {
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
-//! use std::collections::HashMap;
 //! use kairosdb::query::*;
 //! # use kairosdb::datapoints::Datapoints;
 //! # for i in 0..20 {
@@ -107,11 +105,10 @@
 //!    Time::Nanoseconds(0),
 //!    Time::Nanoseconds(20*500));
 //!
-//! let tags: HashMap<String, Vec<String>> = HashMap::new();
 //! let aggregator = Aggregator::new(
 //!     AggregatorType::AVG,
 //!     RelativeTime::new(1, TimeUnit::SECONDS));
-//! let metric = Metric::new("myMetric", tags, vec![aggregator]);
+//! let metric = Metric::new("myMetric", Tags::new(), vec![aggregator]);
 //! query.add(metric);
 //!
 //! let result = client.query(&query).unwrap();
@@ -129,21 +126,20 @@
 //! assert_eq!(result["myMetric"][4].value, 8.5);
 //! # }
 //! ```
-//! 
+//!
 //! Deleting data is like querying data.
 //!
 //! ```
 //! # fn main() {
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
-//! use std::collections::HashMap;
-//! use kairosdb::query::{Query, Time, Metric};
+//! use kairosdb::query::{Query, Time, Metric, Tags};
 //!
 //! let mut query = Query::new(
 //!    Time::Nanoseconds(1000),
 //!    Time::Nanoseconds(2000));
 //!
-//! let mut tags: HashMap<String, Vec<String>> = HashMap::new();
+//! let mut tags = Tags::new();
 //! tags.insert("test".to_string(), vec!["first".to_string()]);
 //! let metric = Metric::new("myMetric", tags, vec![]);
 //! query.add(metric);
