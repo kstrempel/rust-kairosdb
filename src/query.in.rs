@@ -17,6 +17,8 @@
 use std::collections::HashMap;
 use chrono::{DateTime, UTC, Local};
 
+pub type Tags = HashMap<String, Vec<String>>;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub enum TimeUnit {
     MILLISECONDS,
@@ -74,9 +76,8 @@ pub enum Time {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Metric {
-    tags: HashMap<String, Vec<String>>,
+    tags: Tags,
     name: String,
-    limit: i64,
     aggregators: Vec<Aggregator>
 }
 
@@ -130,12 +131,11 @@ impl Query {
 
 impl Metric {
     pub fn new(name: &str,
-               tags: HashMap<String, Vec<String>>,
+               tags: Tags,
                aggregators: Vec<Aggregator>) -> Metric {
         Metric{
             tags: tags,
             name: name.to_string(),
-            limit: 10,
             aggregators: aggregators
         }
     }

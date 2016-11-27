@@ -57,7 +57,7 @@
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
 //! use std::collections::HashMap;
-//! use kairosdb::query::{Query, Time, Metric};
+//! use kairosdb::query::{Query, Time, Metric, Tags};
 //! # use kairosdb::datapoints::Datapoints;
 //! # let mut datapoints = Datapoints::new("myMetric", 0);
 //! # datapoints.add_ms(1000, 11.0);
@@ -71,8 +71,7 @@
 //!    Time::Nanoseconds(1000),
 //!    Time::Nanoseconds(2000));
 //!
-//! let tags: HashMap<String, Vec<String>> = HashMap::new();
-//! let metric = Metric::new("myMetric", tags, vec![]);
+//! let metric = Metric::new("myMetric", Tags::new(), vec![]);
 //! query.add(metric);
 //!
 //! let result = client.query(&query).unwrap();
@@ -86,20 +85,67 @@
 //! # }
 //! ```
 //!
+//! Optionally you can specify aggregators. Aggregators perform an operation on data
+//! points and down samples. For example, you could sum all data points that exist in 5 minute periods.
+//! Aggregators can be combined together. For example, you could sum all data points in 5 minute
+//! periods then average them for a week period.
+//! Aggregators are processed in the order they are specified in the vector for the metric constructor.
+//!
+//! ```
+//! # fn main() {
+//! # use kairosdb::Client;
+//! # let client = Client::new("localhost", 8080);
+//! use kairosdb::query::*;
+//! use kairosdb::datapoints::Datapoints;
+//! # let result = client.delete_metric(&"myMetric");
+//! # assert!(result.is_ok());
+//! for i in 0..10 {
+//!    let mut datapoints = Datapoints::new("myMetric", 0);
+//!    datapoints.add_ms(i * 500, i as f64);
+//!    datapoints.add_tag("test", "first");
+//!    let result = client.add(&datapoints);
+//!    assert!(result.is_ok());
+//! }
+//!
+//! let mut query = Query::new(
+//!    Time::Nanoseconds(0),
+//!    Time::Nanoseconds(10*500));
+//!
+//! let aggregator = Aggregator::new(
+//!     AggregatorType::AVG,
+//!     RelativeTime::new(1, TimeUnit::SECONDS));
+//! let metric = Metric::new("myMetric", Tags::new(), vec![aggregator]);
+//! query.add(metric);
+//!
+//! let result = client.query(&query).unwrap();
+//! assert!(result.contains_key("myMetric"));
+//! assert_eq!(result["myMetric"].len(), 5);
+//! assert_eq!(result["myMetric"][0].time, 0);
+//! assert_eq!(result["myMetric"][0].value, 0.5);
+//! # assert_eq!(result["myMetric"][1].time, 1000);
+//! # assert_eq!(result["myMetric"][1].value, 2.5);
+//! # assert_eq!(result["myMetric"][2].time, 2000);
+//! # assert_eq!(result["myMetric"][2].value, 4.5);
+//! # assert_eq!(result["myMetric"][3].time, 3000);
+//! # assert_eq!(result["myMetric"][3].value, 6.5);
+//! # assert_eq!(result["myMetric"][4].time, 4000);
+//! # assert_eq!(result["myMetric"][4].value, 8.5);
+//! # }
+//! ```
+//!
 //! Deleting data is like querying data.
 //!
 //! ```
 //! # fn main() {
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
-//! use std::collections::HashMap;
-//! use kairosdb::query::{Query, Time, Metric};
+//! use kairosdb::query::{Query, Time, Metric, Tags};
 //!
 //! let mut query = Query::new(
 //!    Time::Nanoseconds(1000),
 //!    Time::Nanoseconds(2000));
 //!
-//! let mut tags: HashMap<String, Vec<String>> = HashMap::new();
+//! let mut tags = Tags::new();
 //! tags.insert("test".to_string(), vec!["first".to_string()]);
 //! let metric = Metric::new("myMetric", tags, vec![]);
 //! query.add(metric);
