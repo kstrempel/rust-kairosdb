@@ -8,6 +8,8 @@ Development is ongoing. Currently you can add Datapoints, query them and delete 
 
 ## Introduction
 
+A `Client` for KairosBD REST API
+
 The Client itself is used as the central access point, from which
 numerous operations are defined implementing each of the specific
 KairosDB APIs.
@@ -23,7 +25,7 @@ the data to the object.
 
 ```
 use kairosdb::datapoints::Datapoints;
-
+//!
 let mut datapoints = Datapoints::new("myMetric", 0);
 datapoints.add_ms(1000, 11.0);
 datapoints.add_ms(2000, 12.0);
@@ -39,14 +41,13 @@ of the query. The start and the end can be a relative time. Check the
 
 ```
 use std::collections::HashMap;
-use kairosdb::query::{Query, Time, Metric, TimeUnit};
+use kairosdb::query::{Query, Time, Metric, Tags};
 
 let mut query = Query::new(
    Time::Nanoseconds(1000),
    Time::Nanoseconds(2000));
 
-let mut tags: HashMap<String, Vec<String>> = HashMap::new();
-let metric = Metric::new("myMetric", tags, vec![]);
+let metric = Metric::new("myMetric", Tags::new(), vec![]);
 query.add(metric);
 
 let result = client.query(&query).unwrap();
@@ -59,22 +60,88 @@ assert_eq!(result["myMetric"][1].time, 2000);
 assert_eq!(result["myMetric"][1].value, 12.0);
 ```
 
+Optionally you can specify aggregators. Aggregators perform an operation on data
+points and down samples. For example, you could sum all data points that exist in 5 minute periods.
+Aggregators can be combined together. For example, you could sum all data points in 5 minute
+periods then average them for a week period.
+Aggregators are processed in the order they are specified in the vector for the metric constructor.
+
+```
+use kairosdb::query::*;
+use kairosdb::datapoints::Datapoints;
+for i in 0..10 {
+   let mut datapoints = Datapoints::new("myMetric", 0);
+   datapoints.add_ms(i * 500, i as f64);
+   datapoints.add_tag("test", "first");
+   let result = client.add(&datapoints);
+   assert!(result.is_ok());
+}
+//!
+let mut query = Query::new(
+   Time::Nanoseconds(0),
+   Time::Nanoseconds(10*500));
+//!
+let aggregator = Aggregator::new(
+    AggregatorType::AVG,
+    RelativeTime::new(1, TimeUnit::SECONDS));
+let metric = Metric::new("myMetric", Tags::new(), vec![aggregator]);
+query.add(metric);
+//!
+let result = client.query(&query).unwrap();
+assert!(result.contains_key("myMetric"));
+assert_eq!(result["myMetric"].len(), 5);
+assert_eq!(result["myMetric"][0].time, 0);
+assert_eq!(result["myMetric"][0].value, 0.5);
+```
+
 Deleting data is like querying data.
 
 ```
-use std::collections::HashMap;
-use kairosdb::query::{Query, Time, TimeUnit, Metric};
-
+# fn main() {
+# use kairosdb::Client;
+# let client = Client::new("localhost", 8080);
+use kairosdb::query::{Query, Time, Metric, Tags};
+//!
 let mut query = Query::new(
    Time::Nanoseconds(1000),
-   Time::Nanoseconds(3000));
-
-let mut tags: HashMap<String, Vec<String>> = HashMap::new();
+   Time::Nanoseconds(2000));
+//!
+let mut tags = Tags::new();
 tags.insert("test".to_string(), vec!["first".to_string()]);
 let metric = Metric::new("myMetric", tags, vec![]);
 query.add(metric);
-
+//!
 let result = client.delete(&query);
+assert!(result.is_ok());
+# }
+```
+
+Getting the current set of metric names is a simple
+function call.
+
+```
+# use kairosdb::Client;
+# let client = Client::new("localhost", 8080);
+# use kairosdb::datapoints::Datapoints;
+# let mut datapoints = Datapoints::new("myMetric", 0);
+# datapoints.add_ms(1000, 11.0);
+# datapoints.add_ms(2000, 12.0);
+# datapoints.add_ms(3000, 13.0);
+# datapoints.add_tag("test", "first");
+# let result = client.add(&datapoints);
+# assert!(result.is_ok());
+//!
+let result = client.list_metrics();
+assert!(result.unwrap().contains(&"myMetric".to_string()));
+```
+
+Delete a metric by name
+
+```
+# use kairosdb::Client;
+# let client = Client::new("localhost", 8080);
+//!
+let result = client.delete_metric(&"myMetric");
 assert!(result.is_ok());
 ```
 
@@ -89,13 +156,13 @@ assert!(result.is_ok());
 
 - [x] Add Data Points
 - [x] Delete Data Points
-- [ ] Delete Metric
+- [x] Delete Metric
 - [ ] Health Checks
-- [ ] List Metric Names
+- [x] List Metric Names
 - [ ] List Tag Names
 - [ ] List Tag Values
 - [x] Query Metrics
-- [ ] Aggregators
+- [x] Aggregators
 - [ ] Query Metric Tags
 - [ ] Roll-ups
 - [ ] Create Roll-up Task
@@ -110,13 +177,13 @@ assert!(result.is_ok());
 - [x] Overview
 - [x] Add Data Points
 - [x] Delete Data Points
-- [ ] Delete Metric
+- [x] Delete Metric
 - [ ] Health Checks
-- [ ] List Metric Names
+- [x] List Metric Names
 - [ ] List Tag Names
 - [ ] List Tag Values
 - [x] Query Metrics
-- [ ] Aggregators
+- [x] Aggregators
 - [ ] Query Metric Tags
 - [ ] Roll-ups
 - [ ] Create Roll-up Task
