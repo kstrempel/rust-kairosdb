@@ -25,7 +25,7 @@ the data to the object.
 
 ```
 use kairosdb::datapoints::Datapoints;
-//!
+
 let mut datapoints = Datapoints::new("myMetric", 0);
 datapoints.add_ms(1000, 11.0);
 datapoints.add_ms(2000, 12.0);
@@ -76,17 +76,17 @@ for i in 0..10 {
    let result = client.add(&datapoints);
    assert!(result.is_ok());
 }
-//!
+
 let mut query = Query::new(
    Time::Nanoseconds(0),
    Time::Nanoseconds(10*500));
-//!
+
 let aggregator = Aggregator::new(
     AggregatorType::AVG,
     RelativeTime::new(1, TimeUnit::SECONDS));
 let metric = Metric::new("myMetric", Tags::new(), vec![aggregator]);
 query.add(metric);
-//!
+
 let result = client.query(&query).unwrap();
 assert!(result.contains_key("myMetric"));
 assert_eq!(result["myMetric"].len(), 5);
@@ -101,16 +101,16 @@ Deleting data is like querying data.
 # use kairosdb::Client;
 # let client = Client::new("localhost", 8080);
 use kairosdb::query::{Query, Time, Metric, Tags};
-//!
+
 let mut query = Query::new(
    Time::Nanoseconds(1000),
    Time::Nanoseconds(2000));
-//!
+
 let mut tags = Tags::new();
 tags.insert("test".to_string(), vec!["first".to_string()]);
 let metric = Metric::new("myMetric", tags, vec![]);
 query.add(metric);
-//!
+
 let result = client.delete(&query);
 assert!(result.is_ok());
 # }
@@ -130,7 +130,7 @@ function call.
 # datapoints.add_tag("test", "first");
 # let result = client.add(&datapoints);
 # assert!(result.is_ok());
-//!
+
 let result = client.list_metrics();
 assert!(result.unwrap().contains(&"myMetric".to_string()));
 ```
@@ -140,7 +140,7 @@ Delete a metric by name
 ```
 # use kairosdb::Client;
 # let client = Client::new("localhost", 8080);
-//!
+
 let result = client.delete_metric(&"myMetric");
 assert!(result.is_ok());
 ```
