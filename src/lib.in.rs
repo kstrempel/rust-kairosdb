@@ -1,18 +1,17 @@
-/*
- * Copyright 2016 Kai Strempel
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2016 Kai Strempel
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 
 use std::io::Read;
 
@@ -97,7 +96,7 @@ impl Client {
             .body(&body)
             .send()?;
         match response.status {
-            StatusCode::NoContent=> Ok(()),
+            StatusCode::NoContent => Ok(()),
             _ => {
                 let msg = format!("Add datapoints returns with bad response code: {:?}",
                                   response.status);
@@ -123,7 +122,7 @@ impl Client {
     pub fn query(&self, query: &Query) -> Result<ResultMap, KairoError> {
         match self.run_query(query, "query") {
             Ok(body) => self.parse_query_result(&body),
-            Err(err) => Err(err)
+            Err(err) => Err(err),
         }
     }
 
@@ -145,7 +144,7 @@ impl Client {
     pub fn delete(&self, query: &Query) -> Result<(), KairoError> {
         match self.run_query(query, "delete") {
             Ok(_) => Ok(()),
-            Err(err) => Err(err)
+            Err(err) => Err(err),
         }
     }
 
@@ -177,11 +176,8 @@ impl Client {
                 let mut result_body = String::new();
                 response.read_to_string(&mut result_body)?;
                 Ok(parse_metricnames_result(&result_body)?)
-            },
-            _ => {
-                Err(KairoError::Kairo(
-                    format!("Bad response code: {:?}", response.status)))
             }
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
         }
     }
 
@@ -210,22 +206,48 @@ impl Client {
 
         match response.status {
             StatusCode::NoContent => Ok(()),
-            _ => {
-                Err(KairoError::Kairo(
-                    format!("Bad response code: {:?}", response.status)))
-            }
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
         }
     }
 
-    fn run_query(&self,
-                 query: &Query,
-                 endpoint: &str) -> Result<String, KairoError> {
+    /// Returns a list of all tagnames
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
+    /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # datapoints.add_tag("test", "first");
+    /// # let _ = client.add(&datapoints);
+    ///
+    /// let result = client.tagnames();
+    /// assert!(result.is_ok());
+    /// assert!(result.unwrap().contains(&"test".to_string()));
+    /// ```
+    pub fn tagnames(&self) -> Result<Vec<String>, KairoError> {
+        info!("Get tagnames");
+        let mut response = self.http_client
+            .get(&format!("{}/api/v1/tagnames", self.base_url))
+            .header(Connection::close())
+            .send()?;
+
+        match response.status {
+            StatusCode::Ok => {
+                let mut result_body = String::new();
+                response.read_to_string(&mut result_body)?;
+                Ok(parse_metricnames_result(&result_body)?)
+            }
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
+        }
+    }
+
+    fn run_query(&self, query: &Query, endpoint: &str) -> Result<String, KairoError> {
         let body = serde_json::to_string(query)?;
         info!("Run query {}", body);
         let mut response = self.http_client
-            .post(&format!("{}/api/v1/datapoints/{}",
-                           self.base_url,
-                           endpoint))
+            .post(&format!("{}/api/v1/datapoints/{}", self.base_url, endpoint))
             .header(Connection::close())
             .body(&body)
             .send()?;
@@ -235,20 +257,14 @@ impl Client {
                 let mut result_body = String::new();
                 response.read_to_string(&mut result_body)?;
                 Ok(result_body)
-            },
-            StatusCode::NoContent => {
-               Ok("".to_string())
             }
-            _ => {
-                Err(KairoError::Kairo(
-                    format!("Bad response code: {:?}", response.status)))
-            }
+            StatusCode::NoContent => Ok("".to_string()),
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
         }
     }
 
 
-    fn parse_query_result(&self, body: &str) -> Result<ResultMap,
-                                                       KairoError> {
+    fn parse_query_result(&self, body: &str) -> Result<ResultMap, KairoError> {
         let result = QueryResult::new();
         result.parse_result(body)
     }
