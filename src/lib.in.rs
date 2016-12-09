@@ -243,7 +243,40 @@ impl Client {
         }
     }
 
-    fn run_query(&self, query: &Query, endpoint: &str) -> Result<String, KairoError> {
+    /// Returns a list of all tagvalues
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
+    /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # datapoints.add_tag("test", "first");
+    /// # let _ = client.add(&datapoints);
+    ///
+    /// let result = client.tagvalues();
+    /// assert!(result.is_ok());
+    /// assert!(result.unwrap().contains(&"first".to_string()));
+    /// ```
+    pub fn tagvalues(&self) -> Result<Vec<String>, KairoError> {
+        info!("Get tagnames");
+        let mut response = self.http_client
+            .get(&format!("{}/api/v1/tagvalues", self.base_url))
+            .header(Connection::close())
+            .send()?;
+
+        match response.status {
+            StatusCode::Ok => {
+                let mut result_body = String::new();
+                response.read_to_string(&mut result_body)?;
+                Ok(parse_metricnames_result(&result_body)?)
+            }
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
+        }
+    }
+
+   fn run_query(&self, query: &Query, endpoint: &str) -> Result<String, KairoError> {
         let body = serde_json::to_string(query)?;
         info!("Run query {}", body);
         let mut response = self.http_client
