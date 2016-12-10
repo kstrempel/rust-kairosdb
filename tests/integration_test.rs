@@ -10,8 +10,7 @@ use chrono::Local;
 use chrono::Duration;
 use kairosdb::Client;
 use kairosdb::datapoints::Datapoints;
-use kairosdb::query::{Query, Metric, Time, TimeUnit,
-                      RelativeTime, Aggregator, AggregatorType};
+use kairosdb::query::{Query, Metric, Time, TimeUnit, RelativeTime, Aggregator, AggregatorType};
 
 #[test]
 fn get_version() {
@@ -62,13 +61,12 @@ fn simple_query() {
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
-    let mut query = Query::new(
-        Time::Nanoseconds(1147724326000),
-        Time::Nanoseconds(1147724326040));
+    let mut query = Query::new(Time::Nanoseconds(1147724326000),
+                               Time::Nanoseconds(1147724326040));
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
-    let metric = Metric::new("second",tags, vec![]);
+    let metric = Metric::new("second", tags, vec![]);
     query.add(metric);
 
     let result = client.query(&query).unwrap();
@@ -78,7 +76,7 @@ fn simple_query() {
     assert_eq!(first.value, 111.0);
 
     let second = &result["second"][1];
-    assert_eq!(second.time,1147724326040);
+    assert_eq!(second.time, 1147724326040);
     assert_eq!(second.value, 112.0);
 
     let array = &result["second"];
@@ -96,15 +94,13 @@ fn metrics_average_query() {
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
-    let mut query = Query::new(
-        Time::Nanoseconds(1147724326000),
-        Time::Nanoseconds(1147724326040));
+    let mut query = Query::new(Time::Nanoseconds(1147724326000),
+                               Time::Nanoseconds(1147724326040));
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
-    let aggregator = Aggregator::new(
-        AggregatorType::AVG,
-        RelativeTime::new(10, TimeUnit::MINUTES));
+    let aggregator = Aggregator::new(AggregatorType::AVG,
+                                     RelativeTime::new(10, TimeUnit::MINUTES));
     let metric = Metric::new("second", tags, vec![aggregator]);
     query.add(metric);
 
@@ -140,13 +136,13 @@ fn simple_query_with_delete() {
 
     let result = client.query(&query).unwrap();
     assert!(result.contains_key("third"));
-    assert_eq!(result["third"].len(),2 );
+    assert_eq!(result["third"].len(), 2);
 
     let result = client.delete(&query);
     assert!(result.is_ok());
 
     let result = client.query(&query).unwrap();
     assert!(result.contains_key("third"));
-    assert_eq!(result["third"].len(),0 );
+    assert_eq!(result["third"].len(), 0);
 
 }
