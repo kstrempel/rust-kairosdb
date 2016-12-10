@@ -174,6 +174,23 @@
 //! assert!(result.unwrap().contains(&"myMetric".to_string()));
 //! ```
 //!
+//! To get information about the current tags and tag values you
+//! can use the tagsnames and tagvalues method.
+//!
+//! ```
+//! # use kairosdb::Client;
+//! # let client = Client::new("localhost", 8080);
+//! # use kairosdb::datapoints::Datapoints;
+//! # let mut datapoints = Datapoints::new("myMetric", 0);
+//! # datapoints.add_tag("test", "first");
+//! # let result = client.add(&datapoints);
+//! # assert!(result.is_ok());
+//!
+//! let tagnames = client.tagnames();
+//! let tagvalues = client.tagvalues();
+//! assert!(tagnames.unwrap().contains(&"test".to_string()));
+//! assert!(tagvalues.unwrap().contains(&"first".to_string()));
+//! ```
 //! Delete a metric by name
 //!
 //! ```
