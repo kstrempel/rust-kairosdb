@@ -276,7 +276,7 @@ impl Client {
         }
     }
 
-   fn run_query(&self, query: &Query, endpoint: &str) -> Result<String, KairoError> {
+    fn run_query(&self, query: &Query, endpoint: &str) -> Result<String, KairoError> {
         let body = serde_json::to_string(query)?;
         info!("Run query {}", body);
         let mut response = self.http_client
