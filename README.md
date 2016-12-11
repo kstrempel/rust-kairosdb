@@ -8,6 +8,7 @@ Development is ongoing. Currently you can add Datapoints, query them and delete 
 
 ## Introduction
 
+
 A `Client` for KairosBD REST API
 
 The Client itself is used as the central access point, from which
@@ -25,7 +26,6 @@ the data to the object.
 
 ```
 use kairosdb::datapoints::Datapoints;
-
 let mut datapoints = Datapoints::new("myMetric", 0);
 datapoints.add_ms(1000, 11.0);
 datapoints.add_ms(2000, 12.0);
@@ -42,7 +42,6 @@ of the query. The start and the end can be a relative time. Check the
 ```
 use std::collections::HashMap;
 use kairosdb::query::{Query, Time, Metric, Tags};
-
 let mut query = Query::new(
    Time::Nanoseconds(1000),
    Time::Nanoseconds(2000));
@@ -61,11 +60,12 @@ assert_eq!(result["myMetric"][1].value, 12.0);
 ```
 
 Optionally you can specify aggregators. Aggregators perform an operation on data
-points and down samples. For example, you could sum all data points that exist in 5 minute periods.
-Aggregators can be combined together. For example, you could sum all data points in 5 minute
-periods then average them for a week period.
-Aggregators are processed in the order they are specified in the vector for the metric constructor.
-
+points and down samples. For example, you could sum all data points that exist in
+5 minute periods. Aggregators can be combined together. For example, you could
+sum all data points in 5 minute periods then average them for a week period.
+Aggregators are processed in the order they are specified in the vector for the
+metric constructor.
+!
 ```
 use kairosdb::query::*;
 use kairosdb::datapoints::Datapoints;
@@ -97,9 +97,6 @@ assert_eq!(result["myMetric"][0].value, 0.5);
 Deleting data is like querying data.
 
 ```
-# fn main() {
-# use kairosdb::Client;
-# let client = Client::new("localhost", 8080);
 use kairosdb::query::{Query, Time, Metric, Tags};
 
 let mut query = Query::new(
@@ -113,34 +110,28 @@ query.add(metric);
 
 let result = client.delete(&query);
 assert!(result.is_ok());
-# }
 ```
 
 Getting the current set of metric names is a simple
 function call.
 
 ```
-# use kairosdb::Client;
-# let client = Client::new("localhost", 8080);
-# use kairosdb::datapoints::Datapoints;
-# let mut datapoints = Datapoints::new("myMetric", 0);
-# datapoints.add_ms(1000, 11.0);
-# datapoints.add_ms(2000, 12.0);
-# datapoints.add_ms(3000, 13.0);
-# datapoints.add_tag("test", "first");
-# let result = client.add(&datapoints);
-# assert!(result.is_ok());
-
 let result = client.list_metrics();
 assert!(result.unwrap().contains(&"myMetric".to_string()));
 ```
 
+To get information about the current tags and tag values you
+can use the tagsnames and tagvalues method.
+
+```
+let tagnames = client.tagnames();
+let tagvalues = client.tagvalues();
+assert!(tagnames.unwrap().contains(&"test".to_string()));
+assert!(tagvalues.unwrap().contains(&"first".to_string()));
+```
 Delete a metric by name
 
 ```
-# use kairosdb::Client;
-# let client = Client::new("localhost", 8080);
-
 let result = client.delete_metric(&"myMetric");
 assert!(result.is_ok());
 ```
@@ -159,8 +150,8 @@ assert!(result.is_ok());
 - [x] Delete Metric
 - [ ] Health Checks
 - [x] List Metric Names
-- [ ] List Tag Names
-- [ ] List Tag Values
+- [x] List Tag Names
+- [x] List Tag Values
 - [x] Query Metrics
 - [x] Aggregators
 - [ ] Query Metric Tags
@@ -180,8 +171,8 @@ assert!(result.is_ok());
 - [x] Delete Metric
 - [ ] Health Checks
 - [x] List Metric Names
-- [ ] List Tag Names
-- [ ] List Tag Values
+- [x] List Tag Names
+- [x] List Tag Values
 - [x] Query Metrics
 - [x] Aggregators
 - [ ] Query Metric Tags
