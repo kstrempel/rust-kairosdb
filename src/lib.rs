@@ -200,6 +200,26 @@
 //! let result = client.delete_metric(&"myMetric");
 //! assert!(result.is_ok());
 //! ```
+//!
+//! ## Server status
+//!
+//! To get the health status of the KairosDB Server
+//!
+//! ```
+//! # use kairosdb::Client;
+//! # let client = Client::new("localhost", 8080);
+//! let response = client.health();
+//! let result = response.unwrap();
+//! assert_eq!(result[0], "JVM-Thread-Deadlock: OK");
+//! assert_eq!(result[1], "Datastore-Query: OK");
+//! ```
+//!
+//! Get the version of the KairosDB Server
+/// ```
+/// # use kairosdb::Client;
+/// let client = Client::new("localhost", 8080);
+/// assert!(client.version().unwrap().starts_with("KairosDB"));
+/// ```
 
 
 extern crate serde;
