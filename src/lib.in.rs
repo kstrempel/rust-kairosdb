@@ -72,6 +72,36 @@ impl Client {
         Ok(version.version)
     }
 
+    /// Returns the health status of the KairosDB Server
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// let client = Client::new("localhost", 8080);
+    /// let response = client.health();
+    /// ```
+    pub fn health(&self) -> Result<Vec<String>, KairoError> {
+        let mut response = self.http_client
+            .get(&format!("{}/api/v1/health/status", self.base_url))
+            .header(Connection::close())
+            .send()?;
+
+        match response.status {
+            StatusCode::Ok => {
+                let mut body = String::new();
+                response.read_to_string(&mut body)?;
+                let health: Vec<String> = serde_json::from_str(&body)?;
+                info!("get server health {:?}", health);
+                Ok(health)
+            }
+            _ => {
+                let msg = format!("Health endpoint returns with wrong status code: {:?}",
+                                  response.status);
+                Err(KairoError::Kairo(msg))
+            }
+        }
+    }
+
     /// Method to add datapoints to the time series database
     ///
     /// # Example
