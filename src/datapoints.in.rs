@@ -16,6 +16,7 @@
 use std::collections::HashMap;
 use chrono::{DateTime, TimeZone};
 
+/// Struct to define everything for a datapoint
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Datapoints {
     name: String,
@@ -25,6 +26,7 @@ pub struct Datapoints {
 }
 
 impl Datapoints {
+    /// Creates a new set of datapoints
     pub fn new(name: &str, ttl: u32) -> Datapoints {
         Datapoints {
             name: name.to_string(),
@@ -34,14 +36,18 @@ impl Datapoints {
         }
     }
 
+    /// Adds a new datapoint to the set using 'DateTime'
     pub fn add<Tz: TimeZone>(&mut self, datetime: DateTime<Tz>, value: f64) {
         self.datapoints.push((datetime.timestamp() * 1000, value));
     }
 
+    /// Adds a new datapoint to the set using the unix millisecond as
+    /// time reference
     pub fn add_ms(&mut self, ms: i64, value: f64) {
         self.datapoints.push((ms, value));
     }
 
+    /// Adds a tag to the datapoint set
     pub fn add_tag(&mut self, name: &str, value: &str) {
         self.tags.insert(name.to_string(), value.to_string());
     }
