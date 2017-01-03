@@ -13,6 +13,8 @@
 // limitations under the License.
 //
 
+//! Several structs to create and parse queries
+
 #[cfg(feature = "serde_macros")]
 include!("query.in.rs");
 

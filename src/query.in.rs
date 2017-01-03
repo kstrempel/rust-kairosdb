@@ -16,8 +16,10 @@
 use std::collections::HashMap;
 use chrono::{DateTime, UTC, Local};
 
+/// Internal tag type
 pub type Tags = HashMap<String, Vec<String>>;
 
+/// Enum for different time units
 #[derive(Serialize, Deserialize, Debug)]
 pub enum TimeUnit {
     MILLISECONDS,
@@ -30,6 +32,7 @@ pub enum TimeUnit {
     YEARS,
 }
 
+/// Aggregator methods
 #[derive(Serialize, Deserialize, Debug)]
 pub enum AggregatorType {
     #[serde(rename = "avg")]
@@ -46,6 +49,7 @@ pub enum AggregatorType {
     HISTOGRAM,
 }
 
+/// JSON representation of a kairosdb query
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Query {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -60,12 +64,14 @@ pub struct Query {
     metrics: Vec<Metric>,
 }
 
+/// JSON representation of the a relative time object
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RelativeTime {
     value: i64,
     unit: TimeUnit,
 }
 
+/// Type to support the several time definitions for the client
 pub enum Time {
     UTC(DateTime<UTC>),
     Local(DateTime<Local>),
@@ -73,6 +79,7 @@ pub enum Time {
     Relative { value: i64, unit: TimeUnit },
 }
 
+/// JSON representation of the metric object
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Metric {
     tags: Tags,
@@ -80,12 +87,14 @@ pub struct Metric {
     aggregators: Vec<Aggregator>,
 }
 
+/// JSON representation of the aggregator object
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Aggregator {
     name: AggregatorType,
     sampling: RelativeTime,
 }
 
+/// JSON representation of the sampling object
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Sampling {
     value: i64,
@@ -93,6 +102,16 @@ pub struct Sampling {
 }
 
 impl Query {
+    /// Creates a new `Query` object. With a absolute or relative
+    /// start and end time.
+    ///
+    /// The following example creates a query starting from the
+    /// first nanosecond in our world until the first week in our world
+    /// finished.
+    /// ```
+    /// let query = Query::new(Time::Nanoseconds(1),
+    ///    Time::Relative{value: 1, unit: TimeUnit::WEEKS});
+    /// ```
     pub fn new(start: Time, end: Time) -> Query {
         Query {
             start_absolute: match start {
@@ -135,6 +154,7 @@ impl Query {
 }
 
 impl Metric {
+    /// Creates  a new `Metric` object.
     pub fn new(name: &str, tags: Tags, aggregators: Vec<Aggregator>) -> Metric {
         Metric {
             tags: tags,
@@ -145,6 +165,7 @@ impl Metric {
 }
 
 impl Aggregator {
+    /// Creates a new `Aggregator` object
     pub fn new(name: AggregatorType, sampling: RelativeTime) -> Aggregator {
         Aggregator {
             name: name,
@@ -154,6 +175,7 @@ impl Aggregator {
 }
 
 impl RelativeTime {
+    /// Creates a new `RelativeTime` object
     pub fn new(value: i64, unit: TimeUnit) -> RelativeTime {
         RelativeTime {
             value: value,
