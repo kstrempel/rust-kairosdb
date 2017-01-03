@@ -29,6 +29,7 @@ struct Version {
     version: String,
 }
 
+/// The core of the kairosdb client, owns a HTTP connection.
 #[derive(Debug)]
 pub struct Client {
     base_url: String,
