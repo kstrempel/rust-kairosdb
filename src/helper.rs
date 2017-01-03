@@ -1,3 +1,5 @@
+//! Helper for common requirements when producing/parsing JSON
+
 #[cfg(feature = "serde_macros")]
 include!("helper.in.rs");
 
