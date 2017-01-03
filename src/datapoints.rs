@@ -13,6 +13,8 @@
 // limitations under the License.
 //
 
+//! Creates new datapoints
+
 #[cfg(feature = "serde_macros")]
 include!("datapoints.in.rs");
 
