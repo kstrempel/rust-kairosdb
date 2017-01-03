@@ -85,9 +85,10 @@
 //! ```
 //!
 //! Optionally you can specify aggregators. Aggregators perform an operation on data
-//! points and down samples. For example, you could sum all data points that exist in
-//! 5 minute periods. Aggregators can be combined together. For example, you could
-//! sum all data points in 5 minute periods then average them for a week period.
+//! points. For example, you can sum all data points that exist in
+//! 5 minute periods. Aggregators can be combined together. E.g you could
+//! sum all data points in 5 minute periods then calculate the average of them for a
+//! week period.
 //! Aggregators are processed in the order they are specified in the vector for the
 //! metric constructor.
 //!
