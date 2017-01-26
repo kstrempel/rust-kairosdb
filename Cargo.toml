@@ -1,6 +1,6 @@
 [package]
 name = "kairosdb"
-version = "0.2.3"
+version = "0.2.8"
 authors = ["Kai Strempel <kstrempel@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/kstrempel/rust-kairosdb"
@@ -12,7 +12,6 @@ build = "build.rs"
 
 [lib]
 name = "kairosdb"
-
 
 [features]
 default = ["serde_codegen"]

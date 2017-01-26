@@ -4,12 +4,25 @@
 
 A simple rust language client for the time series database [KairosDB](http://kairosdb.github.io/).
 
-Development is ongoing. Currently you can add Datapoints, query them and delete them.
+## Documentation
 
-## Introduction
+[Full documentation for `rust-kairosdb`.](https://kstrempel.github.io/rust-kairosdb/kairosdb/index.html)
 
+## Usage
 
-A `Client` for KairosBD REST API
+Put this in your `Cargo.toml`:
+```
+[dependencies]
+kairosdb = "0.2"
+```
+
+Then but this in your crate root:
+
+```rust
+extern crate kairosdb;
+```
+
+## Overview
 
 The Client itself is used as the central access point, from which
 numerous operations are defined implementing each of the specific
@@ -23,6 +36,7 @@ let client = Client::new("localhost", 8080);
 A main job of a time series database is collecting and querying data.
 To add data to KairosDB we have to create a `Datapoints` struct and add
 the data to the object.
+//!
 
 ```
 use kairosdb::datapoints::Datapoints;
@@ -45,12 +59,9 @@ use kairosdb::query::{Query, Time, Metric, Tags};
 let mut query = Query::new(
    Time::Nanoseconds(1000),
    Time::Nanoseconds(2000));
-
 let metric = Metric::new("myMetric", Tags::new(), vec![]);
 query.add(metric);
-
 let result = client.query(&query).unwrap();
-
 assert!(result.contains_key("myMetric"));
 assert_eq!(result["myMetric"].len(), 2);
 assert_eq!(result["myMetric"][0].time, 1000);
@@ -60,12 +71,13 @@ assert_eq!(result["myMetric"][1].value, 12.0);
 ```
 
 Optionally you can specify aggregators. Aggregators perform an operation on data
-points and down samples. For example, you could sum all data points that exist in
-5 minute periods. Aggregators can be combined together. For example, you could
-sum all data points in 5 minute periods then average them for a week period.
+points. For example, you can sum all data points that exist in
+5 minute periods. Aggregators can be combined together. E.g you could
+sum all data points in 5 minute periods then calculate the average of them for a
+week period.
 Aggregators are processed in the order they are specified in the vector for the
 metric constructor.
-!
+
 ```
 use kairosdb::query::*;
 use kairosdb::datapoints::Datapoints;
@@ -136,58 +148,36 @@ let result = client.delete_metric(&"myMetric");
 assert!(result.is_ok());
 ```
 
+## Server status
 
-## Documentation
+To get the health status of the KairosDB Server
 
-[Full documentation for `rust-kairosdb`.](https://kstrempel.github.io/rust-kairosdb/kairosdb/index.html)
+```
+let response = client.health();
+let result = response.unwrap();
+assert_eq!(result[0], "JVM-Thread-Deadlock: OK");
+assert_eq!(result[1], "Datastore-Query: OK");
+```
 
-## TODO's
+Get the version of the KairosDB Server
+```
+let client = Client::new("localhost", 8080);
+assert!(client.version().unwrap().starts_with("KairosDB"));
+```
 
-### Endpoints
+## Limitations
 
-- [x] Add Data Points
-- [x] Delete Data Points
-- [x] Delete Metric
-- [ ] Health Checks
-- [x] List Metric Names
-- [x] List Tag Names
-- [x] List Tag Values
-- [x] Query Metrics
-- [x] Aggregators
-- [ ] Query Metric Tags
-- [ ] Roll-ups
-- [ ] Create Roll-up Task
-- [ ] List Roll-up Tasks
-- [ ] Get Roll-up Task
-- [ ] Delete Roll-up Task
-- [ ] Update Roll-up Task
-- [x] Version
+The rust client is currently not supporting the roll-up features. 
 
-### Documentation
+# Future
 
-- [x] Overview
-- [x] Add Data Points
-- [x] Delete Data Points
-- [x] Delete Metric
-- [ ] Health Checks
-- [x] List Metric Names
-- [x] List Tag Names
-- [x] List Tag Values
-- [x] Query Metrics
-- [x] Aggregators
-- [ ] Query Metric Tags
-- [ ] Roll-ups
-- [ ] Create Roll-up Task
-- [ ] List Roll-up Tasks
-- [ ] Get Roll-up Task
-- [ ] Delete Roll-up Task
-- [ ] Update Roll-up Task
-- [x] Version
+Currently I'm refactoring the complete library to make the code more compact and more rusty. The error handling needs some improvments 
+and perhaps on the road to 1.0.0 I will implement the roll-up features. 
 
 ## Licence
 
 ```
-   Copyright 2016 Kai Strempel
+   Copyright 2016-2017 Kai Strempel
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
