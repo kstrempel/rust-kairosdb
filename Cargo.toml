@@ -1,6 +1,6 @@
 [package]
 name = "kairosdb"
-version = "0.2.8"
+version = "0.2.9"
 authors = ["Kai Strempel <kstrempel@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/kstrempel/rust-kairosdb"
@@ -9,6 +9,7 @@ description = "Client for the KairosDB REST API"
 readme = "README.md"
 keywords = ["kairosdb", "timeseries", "database"]
 build = "build.rs"
+categories = ["database"]
 
 [lib]
 name = "kairosdb"
