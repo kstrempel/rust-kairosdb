@@ -9,6 +9,10 @@ description = "Client for the KairosDB REST API"
 readme = "README.md"
 keywords = ["kairosdb", "timeseries", "database"]
 categories = ["database"]
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
 
 [lib]
 name = "kairosdb"
