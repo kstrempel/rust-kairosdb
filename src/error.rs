@@ -1,4 +1,4 @@
-// Copyright 2016-2017 Kai Strempel
+// Copyright 2016-2018 Kai Strempel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
 // limitations under the License.
 //
 
-use hyper;
+use reqwest;
 use serde_json;
 use std;
 
 #[derive(Debug)]
 pub enum KairoError {
     Kairo(String),
-    Http(hyper::error::Error),
+    Http(reqwest::Error),
     Json(serde_json::error::Error),
     IO(std::io::Error),
 }
 
-impl From<hyper::error::Error> for KairoError {
-    fn from(err: hyper::error::Error) -> KairoError {
+impl From<reqwest::Error> for KairoError {
+    fn from(err: reqwest::Error) -> KairoError {
         KairoError::Http(err)
     }
 }

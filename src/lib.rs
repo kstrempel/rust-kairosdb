@@ -1,4 +1,4 @@
-// Copyright 2016-2017 Kai Strempel
+// Copyright 2016-2018 Kai Strempel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -222,13 +222,14 @@
 /// assert!(client.version().unwrap().starts_with("KairosDB"));
 /// ```
 
-
 extern crate serde;
 extern crate serde_json;
 #[macro_use]
+extern crate serde_derive;
+#[macro_use]
 extern crate log;
 extern crate env_logger;
-extern crate hyper;
+extern crate reqwest;
 extern crate chrono;
 
 pub mod datapoints;
@@ -236,9 +237,300 @@ pub mod query;
 pub mod result;
 mod error;
 mod helper;
+use std::io::Read;
 
-#[cfg(feature = "serde_macros")]
-include!("lib.in.rs");
+use reqwest::StatusCode;
 
-#[cfg(not(feature = "serde_macros"))]
-include!(concat!(env!("OUT_DIR"), "/lib.rs"));
+use datapoints::Datapoints;
+use query::Query;
+use result::{QueryResult, ResultMap};
+use error::KairoError;
+use helper::parse_metricnames_result;
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Version {
+    version: String,
+}
+
+/// The core of the kairosdb client, owns a HTTP connection.
+#[derive(Debug)]
+pub struct Client {
+    base_url: String
+}
+
+impl Client {
+    /// Constructs a new KairosDB Client
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// let client = Client::new("localhost", 8080);
+    /// ```
+    pub fn new(host: &str, port: u32) -> Client {
+        info!("create new client host: {} port: {}", host, port);
+        Client {
+            base_url: format!("http://{}:{}", host, port)
+        }
+    }
+
+    /// Returns the version string of the KairosDB Server
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// let client = Client::new("localhost", 8080);
+    /// assert!(client.version().unwrap().starts_with("KairosDB"));
+    /// ```
+    pub fn version(&self) -> Result<String, KairoError> {
+        let mut response = reqwest::get(&format!("{}/api/v1/version", self.base_url))?;
+        let mut body = String::new();
+        response.read_to_string(&mut body)?;
+        let version: Version = serde_json::from_str(&body)?;
+
+        info!("get server version {:?}", version.version);
+        Ok(version.version)
+    }
+
+    /// Returns the health status of the KairosDB Server
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// let client = Client::new("localhost", 8080);
+    /// let response = client.health();
+    /// ```
+    pub fn health(&self) -> Result<Vec<String>, KairoError> {
+        let mut response = reqwest::get(&format!("{}/api/v1/health/status", self.base_url))?;
+        match response.status() {
+            StatusCode::OK => {
+                let mut body = String::new();
+                response.read_to_string(&mut body)?;
+                let health: Vec<String> = serde_json::from_str(&body)?;
+                info!("get server health {:?}", health);
+                Ok(health)
+            }
+            _ => {
+                let msg = format!("Health endpoint returns with wrong status code: {:?}",
+                                  response.status());
+                Err(KairoError::Kairo(msg))
+            }
+        }
+    }
+
+    /// Method to add datapoints to the time series database
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// use kairosdb::datapoints::Datapoints;
+    ///
+    /// let client = Client::new("localhost", 8080);
+    /// let mut datapoints = Datapoints::new("first", 0);
+    /// datapoints.add_ms(1475513259000, 11.0);
+    /// datapoints.add_ms(1475513259001, 12.0);
+    /// datapoints.add_tag("test", "first");
+    /// let result = client.add(&datapoints);
+    /// assert!(result.is_ok())
+    /// ```
+    pub fn add(&self, datapoints: &Datapoints) -> Result<(), KairoError> {
+        info!("Add datapoints {:?}", datapoints);
+        let response = reqwest::Client::new()
+            .post(&format!("{}/api/v1/datapoints", self.base_url))
+            .json(&vec![datapoints])
+            .send()?;
+
+        match response.status() {
+            StatusCode::NO_CONTENT => Ok(()),
+            _ => {
+                let msg = format!("Add datapoints returns with bad response code: {:?}",
+                                  response.status());
+                Err(KairoError::Kairo(msg))
+            }
+        }
+    }
+
+    /// Runs a query on the database.
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// use kairosdb::query::{Query, Time, TimeUnit};
+    ///
+    /// let client = Client::new("localhost", 8080);
+    /// let query = Query::new(
+    ///    Time::Nanoseconds(1),
+    ///    Time::Relative{value: 1, unit: TimeUnit::WEEKS});
+    /// let result = client.query(&query);
+    /// assert!(result.is_ok())
+    /// ```
+    pub fn query(&self, query: &Query) -> Result<ResultMap, KairoError> {
+        match self.run_query(query, "query") {
+            Ok(body) => self.parse_query_result(&body),
+            Err(err) => Err(err),
+        }
+    }
+
+    /// Runs a delete query on the database. View the query structure
+    /// to understand more about.
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// use kairosdb::query::{Query, Time, TimeUnit};
+    ///
+    /// let client = Client::new("localhost", 8080);
+    /// let query = Query::new(
+    ///    Time::Nanoseconds(1),
+    ///    Time::Relative{value: 1, unit: TimeUnit::WEEKS});
+    /// let result = client.delete(&query);
+    /// assert!(result.is_ok())
+    /// ```
+    pub fn delete(&self, query: &Query) -> Result<(), KairoError> {
+        match self.run_query(query, "delete") {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err),
+        }
+    }
+
+    /// Returns a list with all metric names
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
+    /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # datapoints.add_tag("test", "first");
+    /// # let result = client.add(&datapoints);
+    ///
+    /// let result = client.list_metrics();
+    /// assert!(result.is_ok());
+    /// assert!(result.unwrap().contains(&"first".to_string()));
+    /// ```
+    pub fn list_metrics(&self) -> Result<Vec<String>, KairoError> {
+        info!("Get metricnames");
+        let mut response = reqwest::get(&format!("{}/api/v1/metricnames", self.base_url))?;
+
+        match response.status() {
+            StatusCode::OK => {
+                let mut result_body = String::new();
+                response.read_to_string(&mut result_body)?;
+                Ok(parse_metricnames_result(&result_body)?)
+            }
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
+        }
+    }
+
+    /// Deleting a metric
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
+    /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # let result = client.add(&datapoints);
+    ///
+    /// let result = client.delete_metric(&"first");
+    /// assert!(result.is_ok());
+    /// # let result = client.list_metrics();
+    /// # assert!(result.is_ok());
+    /// # assert!(!result.unwrap().contains(&"first".to_string()));
+    /// ```
+    pub fn delete_metric(&self, metric: &str) -> Result<(), KairoError> {
+        let response = reqwest::Client::new()
+            .delete(&format!("{}/api/v1/metric/{}", self.base_url, metric))
+            .send()?;
+
+        match response.status() {
+            StatusCode::NO_CONTENT => Ok(()),
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
+        }
+    }
+
+    /// Returns a list of all tagnames
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
+    /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # datapoints.add_tag("test", "first");
+    /// # let _ = client.add(&datapoints);
+    ///
+    /// let result = client.tagnames();
+    /// assert!(result.is_ok());
+    /// assert!(result.unwrap().contains(&"test".to_string()));
+    /// ```
+    pub fn tagnames(&self) -> Result<Vec<String>, KairoError> {
+        info!("Get tagnames");
+        let mut response = reqwest::get(&format!("{}/api/v1/tagnames", self.base_url))?;
+
+        match response.status() {
+            StatusCode::OK => {
+                let mut result_body = String::new();
+                response.read_to_string(&mut result_body)?;
+                Ok(parse_metricnames_result(&result_body)?)
+            }
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
+        }
+    }
+
+    /// Returns a list of all tagvalues
+    ///
+    /// # Example
+    /// ```
+    /// use kairosdb::Client;
+    /// # use kairosdb::datapoints::Datapoints;
+    /// let client = Client::new("localhost", 8080);
+    /// # let mut datapoints = Datapoints::new("first", 0);
+    /// # datapoints.add_ms(1475513259000, 11.0);
+    /// # datapoints.add_tag("test", "first");
+    /// # let _ = client.add(&datapoints);
+    ///
+    /// let result = client.tagvalues();
+    /// assert!(result.is_ok());
+    /// assert!(result.unwrap().contains(&"first".to_string()));
+    /// ```
+    pub fn tagvalues(&self) -> Result<Vec<String>, KairoError> {
+        info!("Get tagnames");
+        let mut response = reqwest::get(&format!("{}/api/v1/tagvalues", self.base_url))?;
+
+        match response.status() {
+            StatusCode::OK => {
+                let mut result_body = String::new();
+                response.read_to_string(&mut result_body)?;
+                Ok(parse_metricnames_result(&result_body)?)
+            }
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
+        }
+    }
+
+    fn run_query(&self, query: &Query, endpoint: &str) -> Result<String, KairoError> {
+        info!("Run query {}", serde_json::to_string(query)?);
+        let mut response = reqwest::Client::new()
+            .post(&format!("{}/api/v1/datapoints/{}", self.base_url, endpoint))
+            .json(query)
+            .send()?;
+
+        match response.status() {
+            StatusCode::OK => {
+                let mut result_body = String::new();
+                response.read_to_string(&mut result_body)?;
+                Ok(result_body)
+            }
+            StatusCode::NO_CONTENT => Ok("".to_string()),
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
+        }
+    }
+
+
+    fn parse_query_result(&self, body: &str) -> Result<ResultMap, KairoError> {
+        let result = QueryResult::new();
+        result.parse_result(body)
+    }
+}

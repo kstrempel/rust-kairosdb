@@ -16,7 +16,7 @@ Put this in your `Cargo.toml`:
 kairosdb = "0.2"
 ```
 
-Then but this in your crate root:
+Then add this in your crate root:
 
 ```rust
 extern crate kairosdb;

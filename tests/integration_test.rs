@@ -2,7 +2,6 @@ extern crate kairosdb;
 extern crate env_logger;
 extern crate chrono;
 
-#[macro_use]
 extern crate log;
 use std::collections::HashMap;
 use std::ops::{Add, Sub};
