@@ -229,7 +229,7 @@ extern crate serde_derive;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
-extern crate hyper;
+extern crate reqwest;
 extern crate chrono;
 
 pub mod datapoints;
@@ -239,7 +239,7 @@ mod error;
 mod helper;
 use std::io::Read;
 
-use hyper::StatusCode;
+use reqwest::StatusCode;
 
 use datapoints::Datapoints;
 use query::Query;
@@ -255,8 +255,7 @@ struct Version {
 /// The core of the kairosdb client, owns a HTTP connection.
 #[derive(Debug)]
 pub struct Client {
-    base_url: String,
-    http_client: hyper::Client<hyper::client::HttpConnector>
+    base_url: String
 }
 
 impl Client {
@@ -270,8 +269,7 @@ impl Client {
     pub fn new(host: &str, port: u32) -> Client {
         info!("create new client host: {} port: {}", host, port);
         Client {
-            base_url: format!("http://{}:{}", host, port),
-            http_client: hyper::Client::new(),
+            base_url: format!("http://{}:{}", host, port)
         }
     }
 
@@ -284,9 +282,7 @@ impl Client {
     /// assert!(client.version().unwrap().starts_with("KairosDB"));
     /// ```
     pub fn version(&self) -> Result<String, KairoError> {
-        let mut response = self.http_client
-            .get(&format!("{}/api/v1/version", self.base_url))
-            .send()?;
+        let mut response = reqwest::get(&format!("{}/api/v1/version", self.base_url))?;
         let mut body = String::new();
         response.read_to_string(&mut body)?;
         let version: Version = serde_json::from_str(&body)?;
@@ -304,13 +300,9 @@ impl Client {
     /// let response = client.health();
     /// ```
     pub fn health(&self) -> Result<Vec<String>, KairoError> {
-        let mut response = self.http_client
-            .get(&format!("{}/api/v1/health/status", self.base_url))
-            .header(Connection::close())
-            .send()?;
-
-        match response.status {
-            StatusCode::Ok => {
+        let mut response = reqwest::get(&format!("{}/api/v1/health/status", self.base_url))?;
+        match response.status() {
+            StatusCode::OK => {
                 let mut body = String::new();
                 response.read_to_string(&mut body)?;
                 let health: Vec<String> = serde_json::from_str(&body)?;
@@ -319,7 +311,7 @@ impl Client {
             }
             _ => {
                 let msg = format!("Health endpoint returns with wrong status code: {:?}",
-                                  response.status);
+                                  response.status());
                 Err(KairoError::Kairo(msg))
             }
         }
@@ -342,17 +334,16 @@ impl Client {
     /// ```
     pub fn add(&self, datapoints: &Datapoints) -> Result<(), KairoError> {
         info!("Add datapoints {:?}", datapoints);
-        let body = serde_json::to_string(&vec![datapoints])?;
-        let response = self.http_client
+        let response = reqwest::Client::new()
             .post(&format!("{}/api/v1/datapoints", self.base_url))
-            .header(Connection::close())
-            .body(&body)
+            .json(&vec![datapoints])
             .send()?;
-        match response.status {
-            StatusCode::NoContent => Ok(()),
+
+        match response.status() {
+            StatusCode::NO_CONTENT => Ok(()),
             _ => {
                 let msg = format!("Add datapoints returns with bad response code: {:?}",
-                                  response.status);
+                                  response.status());
                 Err(KairoError::Kairo(msg))
             }
         }
@@ -419,18 +410,15 @@ impl Client {
     /// ```
     pub fn list_metrics(&self) -> Result<Vec<String>, KairoError> {
         info!("Get metricnames");
-        let mut response = self.http_client
-            .get(&format!("{}/api/v1/metricnames", self.base_url))
-            .header(Connection::close())
-            .send()?;
+        let mut response = reqwest::get(&format!("{}/api/v1/metricnames", self.base_url))?;
 
-        match response.status {
-            StatusCode::Ok => {
+        match response.status() {
+            StatusCode::OK => {
                 let mut result_body = String::new();
                 response.read_to_string(&mut result_body)?;
                 Ok(parse_metricnames_result(&result_body)?)
             }
-            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
         }
     }
 
@@ -452,14 +440,13 @@ impl Client {
     /// # assert!(!result.unwrap().contains(&"first".to_string()));
     /// ```
     pub fn delete_metric(&self, metric: &str) -> Result<(), KairoError> {
-        let response = self.http_client
+        let response = reqwest::Client::new()
             .delete(&format!("{}/api/v1/metric/{}", self.base_url, metric))
-            .header(Connection::close())
             .send()?;
 
-        match response.status {
-            StatusCode::NoContent => Ok(()),
-            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
+        match response.status() {
+            StatusCode::NO_CONTENT => Ok(()),
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
         }
     }
 
@@ -481,18 +468,15 @@ impl Client {
     /// ```
     pub fn tagnames(&self) -> Result<Vec<String>, KairoError> {
         info!("Get tagnames");
-        let mut response = self.http_client
-            .get(&format!("{}/api/v1/tagnames", self.base_url))
-            .header(Connection::close())
-            .send()?;
+        let mut response = reqwest::get(&format!("{}/api/v1/tagnames", self.base_url))?;
 
-        match response.status {
-            StatusCode::Ok => {
+        match response.status() {
+            StatusCode::OK => {
                 let mut result_body = String::new();
                 response.read_to_string(&mut result_body)?;
                 Ok(parse_metricnames_result(&result_body)?)
             }
-            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
         }
     }
 
@@ -514,38 +498,33 @@ impl Client {
     /// ```
     pub fn tagvalues(&self) -> Result<Vec<String>, KairoError> {
         info!("Get tagnames");
-        let mut response = self.http_client
-            .get(&format!("{}/api/v1/tagvalues", self.base_url))
-            .header(Connection::close())
-            .send()?;
+        let mut response = reqwest::get(&format!("{}/api/v1/tagvalues", self.base_url))?;
 
-        match response.status {
-            StatusCode::Ok => {
+        match response.status() {
+            StatusCode::OK => {
                 let mut result_body = String::new();
                 response.read_to_string(&mut result_body)?;
                 Ok(parse_metricnames_result(&result_body)?)
             }
-            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
         }
     }
 
     fn run_query(&self, query: &Query, endpoint: &str) -> Result<String, KairoError> {
-        let body = serde_json::to_string(query)?;
-        info!("Run query {}", body);
-        let mut response = self.http_client
+        info!("Run query {}", serde_json::to_string(query)?);
+        let mut response = reqwest::Client::new()
             .post(&format!("{}/api/v1/datapoints/{}", self.base_url, endpoint))
-            .header(Connection::close())
-            .body(&body)
+            .json(query)
             .send()?;
 
-        match response.status {
-            StatusCode::Ok => {
+        match response.status() {
+            StatusCode::OK => {
                 let mut result_body = String::new();
                 response.read_to_string(&mut result_body)?;
                 Ok(result_body)
             }
-            StatusCode::NoContent => Ok("".to_string()),
-            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status))),
+            StatusCode::NO_CONTENT => Ok("".to_string()),
+            _ => Err(KairoError::Kairo(format!("Bad response code: {:?}", response.status()))),
         }
     }
 

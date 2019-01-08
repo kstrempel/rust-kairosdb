@@ -111,6 +111,7 @@ impl Query {
     /// first nanosecond in our world until the first week in our world
     /// finished.
     /// ```
+    /// # use kairosdb::query::{Query, Time, Metric, Tags, TimeUnit};
     /// let query = Query::new(Time::Nanoseconds(1),
     ///    Time::Relative{value: 1, unit: TimeUnit::WEEKS});
     /// ```

@@ -13,20 +13,20 @@
 // limitations under the License.
 //
 
-use hyper;
+use reqwest;
 use serde_json;
 use std;
 
 #[derive(Debug)]
 pub enum KairoError {
     Kairo(String),
-    Http(hyper::error::Error),
+    Http(reqwest::Error),
     Json(serde_json::error::Error),
     IO(std::io::Error),
 }
 
-impl From<hyper::error::Error> for KairoError {
-    fn from(err: hyper::error::Error) -> KairoError {
+impl From<reqwest::Error> for KairoError {
+    fn from(err: reqwest::Error) -> KairoError {
         KairoError::Http(err)
     }
 }
