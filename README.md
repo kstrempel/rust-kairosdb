@@ -169,15 +169,11 @@ assert!(client.version().unwrap().starts_with("KairosDB"));
 
 The rust client is currently not supporting the roll-up features. 
 
-# Future
-
-Currently I'm refactoring the complete library to make the code more compact and more rusty. The error handling needs some improvments 
-and perhaps on the road to 1.0.0 I will implement the roll-up features. 
 
 ## Licence
 
 ```
-   Copyright 2016-2017 Kai Strempel
+   Copyright 2016-2020 Kai Strempel
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
