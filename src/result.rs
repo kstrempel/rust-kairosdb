@@ -51,7 +51,7 @@ impl QueryResult {
 
     pub fn parse_result(&self, body: &str) -> Result<ResultMap, KairoError> {
         let mut result: ResultMap = HashMap::new();
-        let deserialized: QueryResult = try!(serde_json::from_str(body));
+        let deserialized: QueryResult = serde_json::from_str(body)?;
 
         for query in deserialized.queries {
             for r in query.results {
