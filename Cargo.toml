@@ -1,6 +1,6 @@
 [package]
 name = "kairosdb"
-version = "0.2.10"
+version = "0.2.20"
 authors = ["Kai Strempel <kstrempel@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/kstrempel/rust-kairosdb"
@@ -18,10 +18,10 @@ include = [
 name = "kairosdb"
 
 [dependencies]
-chrono="0.4.6"
+chrono="0.4.10"
 reqwest="0.9.6"
-log = "0.4.6"
-env_logger = "0.6.0"
-serde = "1.0.84"
-serde_derive = "1.0"
-serde_json = "1.0.34"
+log = "0.4.8"
+env_logger = "0.7.1"
+serde = "1.0.104"
+serde_derive = "1.0.104"
+serde_json = "1.0.44"
