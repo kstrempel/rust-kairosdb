@@ -16,7 +16,7 @@
 extern crate serde_json;
 use std::collections::HashMap;
 
-use error::KairoError;
+use crate::error::KairoError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct QueryResult {

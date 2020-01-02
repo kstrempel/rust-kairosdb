@@ -15,7 +15,7 @@
 
 extern crate serde_json;
 
-use error::KairoError;
+use crate::error::KairoError;
 
 
 #[derive(Serialize, Deserialize, Debug)]
