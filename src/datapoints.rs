@@ -1,4 +1,4 @@
-// Copyright 2016-2018 Kai Strempel
+// Copyright 2016-2020 Kai Strempel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ impl Datapoints {
             name: name.to_string(),
             datapoints: Vec::new(),
             tags: HashMap::new(),
-            ttl: ttl,
+            ttl
         }
     }
 

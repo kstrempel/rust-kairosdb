@@ -1,4 +1,4 @@
-// Copyright 2016-2018 Kai Strempel
+// Copyright 2016-2020 Kai Strempel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
 //
 
 extern crate serde_json;
+
 use std::collections::HashMap;
 
-use error::KairoError;
+use crate::error::KairoError;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct QueryResult {
     queries: Vec<Query>,
 }
@@ -51,7 +52,7 @@ impl QueryResult {
 
     pub fn parse_result(&self, body: &str) -> Result<ResultMap, KairoError> {
         let mut result: ResultMap = HashMap::new();
-        let deserialized: QueryResult = try!(serde_json::from_str(body));
+        let deserialized: QueryResult = serde_json::from_str(body)?;
 
         for query in deserialized.queries {
             for r in query.results {

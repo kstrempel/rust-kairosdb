@@ -1,4 +1,4 @@
-// Copyright 2016-2018 Kai Strempel
+// Copyright 2016-2020 Kai Strempel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 extern crate serde_json;
 
-use error::KairoError;
+use crate::error::KairoError;
 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -24,6 +24,6 @@ struct Metricnames {
 }
 
 pub fn parse_metricnames_result(body: &str) -> Result<Vec<String>, KairoError> {
-    let deserialized: Metricnames = try!(serde_json::from_str(body));
+    let deserialized: Metricnames = serde_json::from_str(body)?;
     Ok(deserialized.results)
 }

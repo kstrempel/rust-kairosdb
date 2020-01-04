@@ -1,4 +1,4 @@
-// Copyright 2016-2018 Kai Strempel
+// Copyright 2016-2020 Kai Strempel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@
 //! the data to the object.
 //!
 //! ```
-//! # fn main() {
 //! # use kairosdb::Client;
 //! use kairosdb::datapoints::Datapoints;
 //! # let client = Client::new("localhost", 8080);
@@ -44,7 +43,6 @@
 //! datapoints.add_tag("test", "first");
 //! let result = client.add(&datapoints);
 //! assert!(result.is_ok());
-//! # }
 //! ```
 //!
 //! To query data we have to create a `Query` Object with the start and end
@@ -52,7 +50,6 @@
 //! 'Time' structure for more information.
 //!
 //! ```
-//! # fn main() {
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
 //! use std::collections::HashMap;
@@ -81,7 +78,6 @@
 //! assert_eq!(result["myMetric"][0].value, 11.0);
 //! assert_eq!(result["myMetric"][1].time, 2000);
 //! assert_eq!(result["myMetric"][1].value, 12.0);
-//! # }
 //! ```
 //!
 //! Optionally you can specify aggregators. Aggregators perform an operation on data
@@ -93,7 +89,6 @@
 //! metric constructor.
 //!
 //! ```
-//! # fn main() {
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
 //! use kairosdb::query::*;
@@ -131,13 +126,11 @@
 //! # assert_eq!(result["myMetric"][3].value, 6.5);
 //! # assert_eq!(result["myMetric"][4].time, 4000);
 //! # assert_eq!(result["myMetric"][4].value, 8.5);
-//! # }
 //! ```
 //!
 //! Deleting data is like querying data.
 //!
 //! ```
-//! # fn main() {
 //! # use kairosdb::Client;
 //! # let client = Client::new("localhost", 8080);
 //! use kairosdb::query::{Query, Time, Metric, Tags};
@@ -153,7 +146,6 @@
 //!
 //! let result = client.delete(&query);
 //! assert!(result.is_ok());
-//! # }
 //! ```
 //!
 //! Getting the current set of metric names is a simple
