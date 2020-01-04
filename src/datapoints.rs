@@ -31,7 +31,7 @@ impl Datapoints {
             name: name.to_string(),
             datapoints: Vec::new(),
             tags: HashMap::new(),
-            ttl: ttl,
+            ttl
         }
     }
 

@@ -14,11 +14,12 @@
 //
 
 extern crate serde_json;
+
 use std::collections::HashMap;
 
 use crate::error::KairoError;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct QueryResult {
     queries: Vec<Query>,
 }

@@ -1,8 +1,8 @@
 extern crate kairosdb;
 extern crate env_logger;
 extern crate chrono;
-
 extern crate log;
+
 use std::collections::HashMap;
 use std::ops::{Add, Sub};
 use chrono::Local;
@@ -29,8 +29,8 @@ fn get_version_wrong_host() {
 fn add_datapoints_ns() {
     let client = Client::new("localhost", 8080);
     let mut datapoints = Datapoints::new("first", 0);
-    datapoints.add_ms(1475513259000, 11.0);
-    datapoints.add_ms(1475513259001, 12.0);
+    datapoints.add_ms(1_475_513_259_000, 11.0);
+    datapoints.add_ms(1_475_513_259_001, 12.0);
     datapoints.add_tag("test", "first");
     let result = client.add(&datapoints);
     assert!(result.is_ok())
@@ -54,14 +54,14 @@ fn simple_query() {
     let client = Client::new("localhost", 8080);
 
     let mut datapoints = Datapoints::new("second", 0);
-    datapoints.add_ms(1147724326001, 111.0);
-    datapoints.add_ms(1147724326040, 112.0);
-    datapoints.add_ms(1147724326051, 115.0);
+    datapoints.add_ms(1_147_724_326_001, 111.0);
+    datapoints.add_ms(1_147_724_326_040, 112.0);
+    datapoints.add_ms(1_147_724_326_051, 115.0);
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
-    let mut query = Query::new(Time::Nanoseconds(1147724326000),
-                               Time::Nanoseconds(1147724326040));
+    let mut query = Query::new(Time::Nanoseconds(1_147_724_326_000),
+                               Time::Nanoseconds(1_147_724_326_040));
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
@@ -71,12 +71,12 @@ fn simple_query() {
     let result = client.query(&query).unwrap();
     assert!(result.contains_key("second"));
     let first = &result["second"][0];
-    assert_eq!(first.time, 1147724326001);
-    assert_eq!(first.value, 111.0);
+    assert_eq!(first.time, 1_147_724_326_001);
+    assert!((first.value - 111.0).abs() < 0.001);
 
     let second = &result["second"][1];
-    assert_eq!(second.time, 1147724326040);
-    assert_eq!(second.value, 112.0);
+    assert_eq!(second.time, 1_147_724_326_040);
+    assert!((second.value - 112.0).abs() < 0.001);
 
     let array = &result["second"];
     assert_eq!(array.len(), 2);
@@ -87,14 +87,14 @@ fn metrics_average_query() {
     let client = Client::new("localhost", 8080);
 
     let mut datapoints = Datapoints::new("second", 0);
-    datapoints.add_ms(1147724326001, 111.0);
-    datapoints.add_ms(1147724326040, 112.0);
-    datapoints.add_ms(1147724326051, 115.0);
+    datapoints.add_ms(1_147_724_326_001, 111.0);
+    datapoints.add_ms(1_147_724_326_040, 112.0);
+    datapoints.add_ms(1_147_724_326_051, 115.0);
     datapoints.add_tag("test", "second");
     let _ = client.add(&datapoints);
 
-    let mut query = Query::new(Time::Nanoseconds(1147724326000),
-                               Time::Nanoseconds(1147724326040));
+    let mut query = Query::new(Time::Nanoseconds(1_147_724_326_000),
+                               Time::Nanoseconds(1_147_724_326_040));
 
     let mut tags: HashMap<String, Vec<String>> = HashMap::new();
     tags.insert("test".to_string(), vec!["second".to_string()]);
@@ -106,8 +106,8 @@ fn metrics_average_query() {
     let result = client.query(&query).unwrap();
     assert!(result.contains_key("second"));
     let first = &result["second"][0];
-    assert_eq!(first.time, 1147724326001);
-    assert_eq!(first.value, 111.5);
+    assert_eq!(first.time, 1_147_724_326_001);
+    assert!((first.value - 111.5).abs() < 0.001);
 
     let array = &result["second"];
     assert_eq!(array.len(), 1);

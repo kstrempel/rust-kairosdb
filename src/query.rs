@@ -132,8 +132,8 @@ impl Query {
             start_relative: match start {
                 Time::Relative { value, unit } => {
                     Some(RelativeTime {
-                        value: value,
-                        unit: unit,
+                        value,
+                        unit
                     })
                 }
                 _ => None,
@@ -141,8 +141,8 @@ impl Query {
             end_relative: match end {
                 Time::Relative { value, unit } => {
                     Some(RelativeTime {
-                        value: value,
-                        unit: unit,
+                        value,
+                        unit
                     })
                 }
                 _ => None,
@@ -160,9 +160,9 @@ impl Metric {
     /// Creates  a new `Metric` object.
     pub fn new(name: &str, tags: Tags, aggregators: Vec<Aggregator>) -> Metric {
         Metric {
-            tags: tags,
+            tags,
             name: name.to_string(),
-            aggregators: aggregators,
+            aggregators
         }
     }
 }
@@ -171,8 +171,8 @@ impl Aggregator {
     /// Creates a new `Aggregator` object
     pub fn new(name: AggregatorType, sampling: RelativeTime) -> Aggregator {
         Aggregator {
-            name: name,
-            sampling: sampling,
+            name,
+            sampling
         }
     }
 }
@@ -181,8 +181,8 @@ impl RelativeTime {
     /// Creates a new `RelativeTime` object
     pub fn new(value: i64, unit: TimeUnit) -> RelativeTime {
         RelativeTime {
-            value: value,
-            unit: unit,
+            value,
+            unit
         }
     }
 }
